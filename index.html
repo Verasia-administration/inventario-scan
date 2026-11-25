@@ -4,478 +4,1511 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f2937">
-<title>Inventario · Escáner</title>
+<meta name="robots" content="noindex">
+<title>Inventario AJH</title>
 <style>
-  :root { --bg:#f3f4f6; --card:#fff; --ink:#111827; --mute:#6b7280; --ok:#059669; --warn:#b45309; --err:#dc2626; --pri:#1d4ed8; }
-  * { box-sizing:border-box; }
-  html,body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  header { position:sticky; top:0; z-index:5; background:#1f2937; color:#fff; padding:10px 14px; display:flex; align-items:center; gap:10px; }
-  header h1 { font-size:16px; margin:0; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  header button { background:transparent; color:#fff; border:1px solid #4b5563; border-radius:8px; padding:6px 10px; font-size:14px; }
-  main { padding:12px; max-width:560px; margin:0 auto; }
-  .card { background:var(--card); border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.06); }
-  .hidden { display:none !important; }
-  .btn { display:block; width:100%; border:0; border-radius:10px; padding:14px; font-size:17px; font-weight:600; background:var(--pri); color:#fff; }
-  .btn:disabled { background:#9ca3af; }
-  .btn.sec { background:#e5e7eb; color:var(--ink); }
-  .btn.big { padding:20px; font-size:20px; }
-  .row { display:flex; gap:8px; }
-  .row > * { flex:1; }
-  input[type=text], input[type=number] { width:100%; font-size:18px; padding:12px; border:1px solid #d1d5db; border-radius:10px; }
-  label { font-size:14px; color:var(--mute); display:block; margin:8px 0 4px; }
-  .banner { padding:10px 14px; font-weight:600; font-size:15px; }
-  .banner.off { background:var(--err); color:#fff; }
-  .banner.pend { background:#fef3c7; color:var(--warn); }
-  .seg { display:flex; background:#e5e7eb; border-radius:10px; padding:3px; margin-bottom:10px; }
-  .seg button { flex:1; border:0; background:transparent; padding:10px; border-radius:8px; font-size:15px; font-weight:600; color:var(--mute); }
-  .seg button.on { background:#fff; color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.1); }
-  .cam { position:relative; background:#000; border-radius:12px; overflow:hidden; aspect-ratio:4/3; }
-  .cam video { width:100%; height:100%; object-fit:cover; display:block; }
-  .cam .aim { position:absolute; left:10%; right:10%; top:38%; height:24%; border:3px solid rgba(255,255,255,.7); border-radius:8px; }
-  .cam .aim.hit { border-color:#34d399; }
-  .code { font:700 22px/1.2 ui-monospace,Menlo,monospace; text-align:center; padding:10px 0 4px; min-height:38px; letter-spacing:1px; }
-  .hint { text-align:center; color:var(--mute); font-size:14px; min-height:20px; }
-  ul.hist { list-style:none; padding:0; margin:0; }
-  ul.hist li { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid #f3f4f6; font-size:15px; align-items:center; }
-  ul.hist li .t { color:var(--mute); font-size:13px; width:62px; }
-  ul.hist li .c { flex:1; font-family:ui-monospace,Menlo,monospace; }
-  ul.hist li .q { font-weight:700; width:44px; text-align:right; }
-  ul.hist li .s { width:22px; text-align:center; }
-  ul.hist li.undone { text-decoration:line-through; color:#9ca3af; }
-  .files button { display:block; width:100%; text-align:left; background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:12px; margin-bottom:6px; font-size:16px; }
-  .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:flex-end; justify-content:center; z-index:20; }
-  .modal .sheet { background:#fff; width:100%; max-width:560px; border-radius:16px 16px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom)); }
-  .qty { display:flex; align-items:center; gap:10px; margin:12px 0 16px; }
-  .qty button { width:64px; height:64px; font-size:30px; border-radius:12px; border:0; background:#e5e7eb; }
-  .qty input { text-align:center; font-size:30px; font-weight:700; height:64px; }
-  .msg { font-size:14px; color:var(--mute); margin-top:8px; }
-  .err { color:var(--err); }
-  .toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111827; color:#fff; padding:10px 16px; border-radius:10px; font-size:15px; z-index:30; max-width:90%; }
+:root{--rojo:#c62828;--verde:#2e7d32;--naranja:#e65100;--azul:#1565c0;--gris:#6b7280;--borde:#d1d5db;--fondo:#f3f4f6;--oscuro:#1f2937}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:#111827;font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button,input{font:inherit}
+.oculto{display:none!important}
+.invisible{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+header{position:sticky;top:0;z-index:30;background:var(--oscuro);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.sin-red{background:var(--rojo);color:#fff;font-weight:800;text-align:center;padding:12px 10px;font-size:1.05rem;animation:latido 1.2s ease-in-out infinite}
+@keyframes latido{50%{background:#8e0000}}
+.barra{display:flex;align-items:baseline;gap:10px;padding:10px 12px 6px;flex-wrap:wrap}
+.barra strong{font-size:1.05rem}
+.migas{font-size:.9rem;color:#d1d5db;word-break:break-all}
+.cambios{display:flex;gap:8px;padding:0 12px 10px}
+.cambios button{flex:1;background:#374151;color:#fff;border:1px solid #4b5563;border-radius:8px;padding:9px 6px;font-size:.95rem}
+main{padding:12px;max-width:720px;margin:0 auto}
+h2{font-size:1.2rem;margin:6px 0 12px}
+h3{font-size:1rem;margin:16px 0 8px;color:#374151}
+.boton{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--borde);background:#fff;color:#111827;border-radius:10px;padding:12px 14px;font-weight:600;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent}
+.boton:active{transform:scale(.98)}
+.boton[disabled]{opacity:.45}
+.primario{background:var(--azul);border-color:var(--azul);color:#fff}
+.peligro{background:#fff;border-color:var(--rojo);color:var(--rojo)}
+.grande{width:100%;padding:16px;font-size:1.1rem}
+.enorme{width:100%;padding:20px;font-size:1.3rem;border-radius:14px}
+.idiomas{display:grid;gap:12px}
+.idiomas .boton{padding:26px;font-size:1.4rem}
+.fijos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.fijos .boton{padding:18px 8px;font-size:1.1rem;background:#fff7ed;border-color:#fdba74}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+.rejilla .boton{padding:14px 4px;font-size:1rem}
+.cargando{color:var(--gris);padding:10px 0}
+.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:10px 12px;margin:10px 0;white-space:pre-wrap;word-break:break-word}
+.error .boton{margin-top:8px}
+.tarjeta{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:12px;margin-bottom:12px}
+.tarjeta label{display:block;font-weight:600;margin-bottom:6px}
+.campo{width:100%;padding:12px;border:1px solid var(--borde);border-radius:10px;font-size:1rem;margin-bottom:10px}
+.lista-csv{display:grid;gap:8px}
+.lista-csv .boton{justify-content:space-between;text-align:left;word-break:break-all}
+.lista-csv small{color:var(--gris);font-weight:400;white-space:nowrap}
+.modos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.modos button{border:2px solid var(--borde);background:#fff;border-radius:10px;padding:10px 4px;font-weight:700;font-size:.95rem;color:#111827}
+.modos button[aria-selected="true"]{border-color:var(--azul);background:#e3f2fd;color:var(--azul)}
+.visor{position:relative;background:#000;border-radius:12px;overflow:hidden;aspect-ratio:4/3;max-height:46vh;width:100%}
+.visor video{width:100%;height:100%;object-fit:cover;display:block}
+.mira{position:absolute;left:10%;right:10%;top:36%;bottom:36%;border:3px solid rgba(255,255,255,.85);border-radius:8px;pointer-events:none}
+.msg-camara{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;color:#fff;background:rgba(0,0,0,.72)}
+.codigo-visto{margin:10px 0;padding:10px;border-radius:10px;background:#fff;border:1px dashed var(--borde);text-align:center;font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums;min-height:3em;display:flex;align-items:center;justify-content:center;word-break:break-all}
+.codigo-visto.activo{border:2px solid var(--verde);color:var(--verde)}
+.codigo-visto.vacio{color:var(--gris);font-weight:500;font-size:1rem}
+.estado-cola{margin:10px 0;font-size:.95rem;color:#374151}
+.estado-cola.pend{color:var(--naranja);font-weight:700}
+.fila-titulo{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.fila-titulo .boton{padding:8px 12px}
+.lecturas{list-style:none;margin:0;padding:0;background:#fff;border:1px solid var(--borde);border-radius:12px;overflow:hidden}
+.lecturas li{display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;padding:9px 12px;border-top:1px solid #f0f0f0;align-items:center}
+.lecturas li:first-child{border-top:none}
+.lecturas .hora{color:var(--gris);font-size:.85rem;font-variant-numeric:tabular-nums}
+.lecturas .cod{font-weight:700;font-variant-numeric:tabular-nums;word-break:break-all}
+.lecturas .dest{grid-column:2;color:var(--gris);font-size:.8rem;word-break:break-all}
+.lecturas li.anulada .cod{text-decoration:line-through;color:var(--gris)}
+.chip{font-size:.78rem;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.chip.enviada{background:#e8f5e9;color:var(--verde)}
+.chip.pendiente{background:#fff3e0;color:var(--naranja)}
+.chip.anulada{background:#f3f4f6;color:var(--gris)}
+.chip.error{background:#fef2f2;color:var(--rojo)}
+.vacia{padding:14px;color:var(--gris);text-align:center}
+.miniaturas{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:12px}
+.mini{background:#fff;border:1px solid var(--borde);border-radius:10px;overflow:hidden;font-size:.75rem}
+.mini img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#e5e7eb}
+.mini div{padding:4px 6px;display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.mini .nombre{word-break:break-all;color:#374151}
+.capa{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.hoja{background:#fff;width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(0,0,0,.25)}
+.hoja-titulo{text-align:center;color:var(--gris);font-size:.9rem}
+.hoja-codigo{text-align:center;font-size:1.4rem;font-weight:800;margin:4px 0 14px;word-break:break-all}
+.cantidad{display:grid;grid-template-columns:72px 1fr 72px;gap:10px;margin-bottom:16px}
+.cantidad button{font-size:2rem;font-weight:700;border-radius:12px;border:1px solid var(--borde);background:#f9fafb;color:#111827}
+.cantidad input{text-align:center;font-size:2rem;font-weight:800;border:2px solid var(--azul);border-radius:12px;padding:8px;width:100%;min-width:0}
+.hoja-botones{display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#111827;color:#fff;padding:12px 16px;border-radius:12px;z-index:70;max-width:92vw;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.3);text-align:center;word-break:break-word}
+.toast.ok{background:var(--verde)}
+.toast.mal{background:var(--rojo)}
+footer{max-width:720px;margin:24px auto 30px;padding:0 12px;display:flex;justify-content:space-between;gap:10px;color:var(--gris);font-size:.85rem}
+.enlace{background:none;border:none;color:var(--gris);text-decoration:underline;padding:0;cursor:pointer}
+.ayuda{color:var(--gris);font-size:.9rem;margin:6px 0}
 </style>
 </head>
 <body>
 <header>
-  <h1 id="title">Inventario</h1>
-  <button id="btnChange" class="hidden">Archivo</button>
-  <button id="btnLogout" class="hidden">Salir</button>
+  <div id="sinRed" class="sin-red oculto" role="alert">⚠ SIN CONEXIÓN — lo que registres se guarda en este móvil y se enviará solo cuando vuelva la conexión</div>
+  <div class="barra"><strong>Inventario AJH</strong><span id="migas" class="migas"></span></div>
+  <div id="cambios" class="cambios oculto">
+    <button id="btnCambiarIdioma" type="button">Cambiar idioma</button>
+    <button id="btnCambiarDestino" type="button">Cambiar destino</button>
+  </div>
 </header>
-<div id="bannerOff" class="banner off hidden">⚠ Sin conexión. Las lecturas se guardan en este móvil y se enviarán a Dropbox cuando vuelva la conexión. No cierres esta página.</div>
-<div id="bannerPend" class="banner pend hidden"></div>
 
 <main>
-  <!-- 1. Conectar con Dropbox -->
-  <section id="vLogin" class="hidden">
-    <div class="card">
-      <p>Para empezar, conecta este móvil con la cuenta de Dropbox de la librería. Solo hay que hacerlo una vez en cada móvil.</p>
-      <button id="btnLogin" class="btn">Conectar con Dropbox</button>
-      <p id="loginMsg" class="msg"></p>
-    </div>
+  <section id="vConectar" class="vista">
+    <h2>Conectar con Dropbox</h2>
+    <p>El inventario se guarda en el Dropbox de la tienda. Este móvil tiene que conectarse una vez.</p>
+    <button id="btnConectar" class="boton primario grande" type="button">Conectar con Dropbox</button>
+    <div id="errorConectar" class="error oculto"></div>
   </section>
 
-  <!-- 2. Elegir archivo -->
-  <section id="vFiles" class="hidden">
-    <div class="card">
-      <strong>Nuevo inventario</strong>
-      <label for="newName">Nombre del archivo</label>
-      <input id="newName" type="text" autocomplete="off">
-      <div style="height:10px"></div>
-      <button id="btnCreate" class="btn">Crear y empezar</button>
-    </div>
-    <div class="card">
-      <strong>Continuar un inventario</strong>
-      <div id="fileList" class="files" style="margin-top:10px"></div>
-      <p id="filesMsg" class="msg"></p>
-    </div>
+  <section id="vIdioma" class="vista oculto">
+    <h2>¿Qué inventario vas a hacer?</h2>
+    <div id="idiomas" class="idiomas"></div>
   </section>
 
-  <!-- 3. Escanear -->
-  <section id="vScan" class="hidden">
-    <div class="seg">
-      <button id="modeA" class="on">A · 1 lectura = 1 unidad</button>
-      <button id="modeB">B · Lectura + cantidad</button>
+  <section id="vDestino" class="vista oculto">
+    <h2 id="tituloDestino">Elige el destino</h2>
+    <div id="fijos" class="fijos"></div>
+    <h3>Estanterías</h3>
+    <div id="cargandoEst" class="cargando oculto">Leyendo las estanterías de Dropbox…</div>
+    <div id="errorEst" class="error oculto"></div>
+    <div id="rejilla" class="rejilla"></div>
+    <p><button id="btnReleerEst" class="boton" type="button">Volver a leer las estanterías</button></p>
+  </section>
+
+  <section id="vArchivo" class="vista oculto">
+    <h2 id="tituloArchivo">Archivo</h2>
+    <div class="tarjeta">
+      <label for="nombreNuevo">Nuevo archivo</label>
+      <input id="nombreNuevo" class="campo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button id="btnNuevo" class="boton primario grande" type="button">Empezar con este archivo</button>
     </div>
-    <div class="cam">
-      <video id="video" playsinline muted autoplay></video>
-      <div id="aim" class="aim"></div>
+    <h3>O continuar con uno que ya existe</h3>
+    <div id="cargandoCsv" class="cargando oculto">Buscando archivos en Dropbox…</div>
+    <div id="errorCsv" class="error oculto"></div>
+    <div id="listaCsv" class="lista-csv"></div>
+  </section>
+
+  <section id="vTrabajo" class="vista oculto">
+    <div class="modos" role="tablist">
+      <button type="button" role="tab" data-modo="A">A · 1 = 1</button>
+      <button type="button" role="tab" data-modo="B">B · Cantidad</button>
+      <button type="button" role="tab" data-modo="C">C · Foto</button>
     </div>
-    <div id="curCode" class="code"></div>
-    <div id="hint" class="hint">Iniciando cámara…</div>
-    <div style="height:8px"></div>
-    <button id="btnRead" class="btn big">Registrar</button>
-    <div style="height:8px"></div>
-    <div class="row">
-      <button id="btnUndo" class="btn sec">Anular última</button>
+
+    <div id="panelCodigos">
+      <div class="visor">
+        <video id="video" playsinline muted autoplay></video>
+        <div class="mira"></div>
+        <div id="msgCamara" class="msg-camara oculto"></div>
+      </div>
+      <div id="codigoVisto" class="codigo-visto vacio">Apunta a un código de barras</div>
+      <button id="btnRegistrar" class="boton primario enorme" type="button" disabled>Registrar</button>
+      <p id="ayudaB" class="ayuda oculto">Al detectar un código se pide la cantidad. El mismo código no se vuelve a pedir hasta que lo apartes de la cámara.</p>
     </div>
-    <div class="card" style="margin-top:12px">
-      <strong>Últimas lecturas (este móvil)</strong>
-      <ul id="hist" class="hist"></ul>
+
+    <div id="panelFoto" class="oculto">
+      <label for="inputFoto" class="boton primario enorme">📷 Hacer foto</label>
+      <input id="inputFoto" class="invisible" type="file" accept="image/*" capture="environment">
+      <p class="ayuda">Foto de la estantería o de la sección. Se guarda en la carpeta del destino.</p>
+      <div id="miniaturas" class="miniaturas"></div>
+    </div>
+
+    <div id="estadoCola" class="estado-cola"></div>
+    <div id="errorCola" class="error oculto"></div>
+
+    <div id="bloqueLecturas">
+      <div class="fila-titulo">
+        <h3>Últimas lecturas de este móvil</h3>
+        <button id="btnAnular" class="boton peligro" type="button">Anular última</button>
+      </div>
+      <ol id="listaLecturas" class="lecturas"></ol>
     </div>
   </section>
 </main>
 
-<!-- Modal cantidad (modo B) -->
-<div id="qtyModal" class="modal hidden">
-  <div class="sheet">
-    <div class="code" id="qtyCode"></div>
-    <div class="qty">
-      <button id="qMinus" aria-label="Menos">−</button>
-      <input id="qInput" type="number" inputmode="numeric" min="1" value="1">
-      <button id="qPlus" aria-label="Más">+</button>
+<div id="capaHoja" class="capa oculto">
+  <div class="hoja" role="dialog" aria-modal="true" aria-labelledby="hojaCodigo">
+    <div class="hoja-titulo">¿Cuántas unidades?</div>
+    <div id="hojaCodigo" class="hoja-codigo"></div>
+    <div class="cantidad">
+      <button id="btnMenos" type="button" aria-label="Menos">−</button>
+      <input id="inputCantidad" type="number" inputmode="numeric" min="1" max="99999" step="1" value="1">
+      <button id="btnMas" type="button" aria-label="Más">+</button>
     </div>
-    <div class="row">
-      <button id="qCancel" class="btn sec">Cancelar</button>
-      <button id="qOk" class="btn">Confirmar</button>
+    <div class="hoja-botones">
+      <button id="btnCancelar" class="boton grande" type="button">Cancelar</button>
+      <button id="btnConfirmar" class="boton primario grande" type="button">Confirmar</button>
     </div>
   </div>
 </div>
 
-<script type="module">
-/* ============ CONFIGURACIÓN ============ */
-const DROPBOX_APP_KEY = "PEGAR_AQUI_LA_APP_KEY";   // App key de la app registrada en dropbox.com/developers
-/* ====================================== */
+<div id="toast" class="toast oculto" role="status"></div>
 
-import { BarcodeDetector } from "https://fastly.jsdelivr.net/npm/barcode-detector@3.2.4/dist/es/ponyfill.min.js";
+<footer>
+  <button id="btnDesconectar" class="enlace oculto" type="button">Desconectar Dropbox de este móvil</button>
+  <span>inventario-scan v1.0</span>
+</footer>
 
-const $ = id => document.getElementById(id);
-const LS = {
-  get(k, d=null){ try { const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
-  del(k){ try { localStorage.removeItem(k); } catch {} }
+<script id="nucleo">
+'use strict';
+/* =====================================================================
+   CONFIGURACIÓN
+   - APP_KEY: la «App key» de la app de Dropbox (no es secreta).
+   - Rutas de la API de Dropbox, desde la raíz del Dropbox (cuenta personal:
+     ruta local sin «C:\Users\Usuario\Dropbox»).
+   - Por idioma: carpeta de estanterías (una subcarpeta por estantería) y
+     destinos fijos (botones aparte que guardan directamente en su carpeta).
+   ===================================================================== */
+const APP_KEY = 'PEGAR_AQUI_LA_APP_KEY';
+const CONFIG = {
+  idiomas: [
+    {
+      id: 'chino', nombre: 'Chino',
+      estanterias: '/05_Hinako/99_Otros/04_Inventario/Chino/Fotos y datos de cada estantería',
+      fijos: [],
+    },
+    {
+      id: 'coreano', nombre: 'Coreano',
+      estanterias: '/05_Hinako/99_Otros/04_Inventario/Coreano/Fotos y datos de cada estantería',
+      fijos: [],
+    },
+    {
+      id: 'japones', nombre: 'Japonés',
+      estanterias: '/05_Hinako/99_Otros/04_Inventario/Japonés/Fotos y datos de cada estantería',
+      fijos: [
+        { etiqueta: 'Papelería', carpeta: '/05_Hinako/99_Otros/04_Inventario/Japonés/Papelería&Caligrafía' },
+        { etiqueta: 'Objetos', carpeta: '/05_Hinako/99_Otros/04_Inventario/Japonés/Objetos' },
+      ],
+    },
+  ],
 };
-const REDIRECT_URI = location.origin + location.pathname.replace(/index\.html$/, "");
-const HEADER = "fecha_hora;codigo;cantidad";
-const SUM_HEADER = "codigo;cantidad_total;lecturas";
-const BOM = "﻿";
 
-/* ---------- utilidades ---------- */
-function toast(t, ms=2200){ const d=document.createElement("div"); d.className="toast"; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(), ms); }
-function nowMadrid(){
-  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(new Date()).map(x=>[x.type,x.value]));
-  return `${p.year}-${p.month}-${p.day} ${p.hour==="24"?"00":p.hour}:${p.minute}:${p.second}`;
-}
-function apiArg(obj){ return JSON.stringify(obj).replace(/[\u007f-￿]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4,"0")); }
-function b64url(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
-function randStr(n=64){ const a=new Uint8Array(n); crypto.getRandomValues(a); return b64url(a).slice(0,n); }
-function sanitizeName(s){ s = (s||"").trim().replace(/\.csv$/i,"").replace(/[\\/:*?"<>|]/g,"_"); return s; }
-function sumNameOf(path){ return path.replace(/\.csv$/i, "_resumen.csv"); }
-class NetError extends Error {}
+/* =====================================================================
+   NÚCLEO (sin interfaz). Se prueba con Node: proyectos/inventario-scan/pruebas
+   ===================================================================== */
+globalThis.InvNucleo = (function () {
+  const CRLF = '\r\n';
+  const BOM = '\uFEFF';
+  const CAB_CSV = 'fecha_hora;codigo;cantidad';
+  const CAB_RESUMEN = 'codigo;cantidad_total;lecturas';
+  const ZONA = 'Europe/Madrid';
+  const FORMATOS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39'];
+  const API = 'https://api.dropboxapi.com/2/';
+  const CONTENIDO = 'https://content.dropboxapi.com/2/';
+  const TOKEN_URL = 'https://api.dropboxapi.com/oauth2/token';
+  const AUTORIZAR_URL = 'https://www.dropbox.com/oauth2/authorize';
+  const esperarMs = ms => new Promise(r => setTimeout(r, ms));
 
-/* ---------- estado de conexión ---------- */
-let netDown = !navigator.onLine;
-function setNet(down){ netDown = down; $("bannerOff").classList.toggle("hidden", !down); }
-window.addEventListener("offline", ()=>{ setNet(true); beepErr(); });
-window.addEventListener("online",  ()=>{ setNet(false); toast("Conexión recuperada"); flush(); });
-setNet(netDown);
-
-/* ---------- Dropbox OAuth (PKCE) ---------- */
-async function startLogin(){
-  if (DROPBOX_APP_KEY.startsWith("PEGAR")) { $("loginMsg").innerHTML = '<span class="err">Falta configurar la App key en el archivo index.html.</span>'; return; }
-  const verifier = randStr(64);
-  const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
-  const state = randStr(24);
-  sessionStorage.setItem("pkce", JSON.stringify({verifier, state}));
-  const u = new URL("https://www.dropbox.com/oauth2/authorize");
-  u.search = new URLSearchParams({ client_id:DROPBOX_APP_KEY, response_type:"code", code_challenge:challenge, code_challenge_method:"S256", token_access_type:"offline", redirect_uri:REDIRECT_URI, state }).toString();
-  location.href = u.toString();
-}
-async function finishLoginIfReturning(){
-  const q = new URLSearchParams(location.search);
-  if (!q.has("code") && !q.has("error")) return;
-  history.replaceState(null, "", REDIRECT_URI);
-  if (q.has("error")) { $("loginMsg").innerHTML = '<span class="err">No se ha autorizado el acceso.</span>'; return; }
-  const saved = JSON.parse(sessionStorage.getItem("pkce") || "null");
-  sessionStorage.removeItem("pkce");
-  if (!saved || saved.state !== q.get("state")) { $("loginMsg").innerHTML = '<span class="err">Error de seguridad al conectar. Vuelve a intentarlo.</span>'; return; }
-  const r = await fetch("https://api.dropboxapi.com/oauth2/token", { method:"POST", body:new URLSearchParams({ code:q.get("code"), grant_type:"authorization_code", code_verifier:saved.verifier, client_id:DROPBOX_APP_KEY, redirect_uri:REDIRECT_URI }) });
-  const j = await r.json();
-  if (!r.ok) { $("loginMsg").innerHTML = '<span class="err">No se pudo conectar: ' + (j.error_description||j.error||r.status) + '</span>'; return; }
-  LS.set("dbx", { refresh:j.refresh_token, access:j.access_token, exp:Date.now() + (j.expires_in-60)*1000 });
-}
-async function token(force=false){
-  const t = LS.get("dbx");
-  if (!t) throw new Error("NOAUTH");
-  if (!force && t.access && Date.now() < t.exp) return t.access;
-  let r;
-  try { r = await fetch("https://api.dropboxapi.com/oauth2/token", { method:"POST", body:new URLSearchParams({ grant_type:"refresh_token", refresh_token:t.refresh, client_id:DROPBOX_APP_KEY }) }); }
-  catch { throw new NetError(); }
-  const j = await r.json().catch(()=>({}));
-  if (!r.ok) { if (r.status===400||r.status===401) { LS.del("dbx"); throw new Error("NOAUTH"); } throw new Error("Token " + r.status); }
-  t.access = j.access_token; t.exp = Date.now() + (j.expires_in-60)*1000; LS.set("dbx", t);
-  return t.access;
-}
-async function dbx(url, opts, retried=false){
-  const tk = await token();
-  let r;
-  try { r = await fetch(url, { ...opts, headers:{ ...(opts.headers||{}), Authorization:"Bearer " + tk } }); }
-  catch { throw new NetError(); }
-  if (r.status === 401 && !retried) { await token(true); return dbx(url, opts, true); }
-  return r;
-}
-async function listCsv(){
-  const out = []; let r = await dbx("https://api.dropboxapi.com/2/files/list_folder", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ path:"" }) });
-  let j = await r.json(); if (!r.ok) throw new Error(j.error_summary || r.status);
-  out.push(...j.entries);
-  while (j.has_more) {
-    r = await dbx("https://api.dropboxapi.com/2/files/list_folder/continue", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ cursor:j.cursor }) });
-    j = await r.json(); if (!r.ok) throw new Error(j.error_summary || r.status); out.push(...j.entries);
+  /* ---------- fechas en hora de Madrid ---------- */
+  const fmtMadrid = new Intl.DateTimeFormat('en-GB', {
+    timeZone: ZONA, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+  });
+  function partes(d) {
+    const p = {};
+    for (const x of fmtMadrid.formatToParts(d)) p[x.type] = x.value;
+    if (p.hour === '24') p.hour = '00';
+    return p;
   }
-  return out.filter(e => e[".tag"]==="file" && /\.csv$/i.test(e.name) && !/_resumen\.csv$/i.test(e.name))
-            .sort((a,b)=> (b.server_modified||"").localeCompare(a.server_modified||""));
-}
-async function download(path){
-  const r = await dbx("https://content.dropboxapi.com/2/files/download", { method:"POST", headers:{ "Dropbox-API-Arg":apiArg({ path }) } });
-  if (r.status === 409) { const j = await r.json().catch(()=>({})); if ((j.error_summary||"").includes("not_found")) return { text:null, rev:null }; throw new Error(j.error_summary || "409"); }
-  if (!r.ok) throw new Error("Descarga " + r.status);
-  const meta = JSON.parse(r.headers.get("dropbox-api-result") || "{}");
-  return { text: await r.text(), rev: meta.rev || null };
-}
-/* devuelve "ok" | "conflict" */
-async function upload(path, text, mode){
-  const r = await dbx("https://content.dropboxapi.com/2/files/upload", { method:"POST", headers:{ "Content-Type":"application/octet-stream", "Dropbox-API-Arg":apiArg({ path, mode, autorename:false, mute:true }) }, body:new Blob([text], {type:"text/csv"}) });
-  if (r.ok) return "ok";
-  const j = await r.json().catch(()=>({}));
-  if (r.status === 409 && (j.error_summary||"").startsWith("path/conflict")) return "conflict";
-  throw new Error(j.error_summary || ("Subida " + r.status));
-}
+  function fechaHora(d) { const p = partes(d); return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`; }
+  function fecha(d) { const p = partes(d); return `${p.year}-${p.month}-${p.day}`; }
+  function sello(d) { const p = partes(d); return `${p.year}-${p.month}-${p.day}_${p.hour}-${p.minute}-${p.second}`; }
 
-/* ---------- CSV ---------- */
-function parseRows(text){
-  if (!text) return [];
-  return text.replace(/^﻿/,"").split(/\r?\n/).slice(1).filter(l=>l.trim()).map(l => { const [f,c,q] = l.split(";"); return { f, c, q:Number(q)||0 }; });
-}
-function buildCsv(rows){ return BOM + [HEADER, ...rows.map(r=>`${r.f};${r.c};${r.q}`)].join("\r\n") + "\r\n"; }
-function buildSummary(rows){
-  const m = new Map();
-  for (const r of rows) { const s = m.get(r.c) || { q:0, n:0 }; s.q += r.q; s.n += 1; m.set(r.c, s); }
-  const lines = [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([c,s])=>`${c};${s.q};${s.n}`);
-  return BOM + [SUM_HEADER, ...lines].join("\r\n") + "\r\n";
-}
+  /* ---------- códigos de barras ---------- */
+  function limpiarCodigo(s) { return String(s == null ? '' : s).replace(/[;\r\n\t"]/g, '').trim(); }
+  // Segundo código de los libros japoneses (precio): 13 dígitos que empiezan por 19.
+  function esCodigoPrecio(c) { return /^19\d{11}$/.test(c); }
+  function elegirCodigo(detecciones) {
+    const codigos = [];
+    for (const d of detecciones || []) {
+      const c = limpiarCodigo(typeof d === 'string' ? d : d && d.rawValue);
+      if (c && !esCodigoPrecio(c) && !codigos.includes(c)) codigos.push(c);
+    }
+    return codigos.find(c => /^97[89]\d{10}$/.test(c)) || codigos[0] || null;
+  }
 
-/* ---------- cola de operaciones (por archivo) ---------- */
-let file = LS.get("file");               // { path, name }
-let ops = [];                            // [{id, type:"add"|"del", row}]
-let hist = [];                           // historial local para la pantalla
-let flushing = false, retryTimer = null;
-const qKey = () => "ops:" + file.path, hKey = () => "hist:" + file.path;
-function loadQueue(){ ops = LS.get(qKey(), []); hist = LS.get(hKey(), []); }
-function saveQueue(){ LS.set(qKey(), ops); LS.set(hKey(), hist.slice(0,50)); renderPending(); renderHist(); }
-
-function addRow(code, qty){
-  const row = { f:nowMadrid(), c:code, q:qty };
-  const id = Date.now() + "-" + Math.random().toString(36).slice(2,7);
-  ops.push({ id, type:"add", row });
-  hist.unshift({ id, row, sent:false, undone:false });
-  saveQueue(); beepOk(); flush();
-}
-function undoLast(){
-  const h = hist.find(x => !x.undone);
-  if (!h) { toast("No hay nada que anular"); return; }
-  if (!confirm(`¿Anular ${h.row.c} × ${h.row.q}?`)) return;
-  const i = ops.findIndex(o => o.id === h.id && o.type === "add");
-  if (i >= 0) ops.splice(i, 1);                       // aún no enviada: se quita sin más
-  else ops.push({ id:h.id, type:"del", row:h.row });  // ya enviada: se borra del archivo
-  h.undone = true; saveQueue(); flush();
-}
-
-async function flush(){
-  if (flushing || !file || ops.length === 0) return;
-  if (!navigator.onLine) { setNet(true); return; }
-  flushing = true; clearTimeout(retryTimer); retryTimer = null;
-  let failed = false;
-  const batch = ops.slice();
-  try {
-    let done = false;
-    for (let attempt = 0; attempt < 6 && !done; attempt++) {
-      const { text, rev } = await download(file.path);
-      const rows = parseRows(text);
-      for (const o of batch) {
-        if (o.type === "add") rows.push(o.row);
-        else { for (let k = rows.length - 1; k >= 0; k--) { const r = rows[k]; if (r.f===o.row.f && r.c===o.row.c && r.q===o.row.q) { rows.splice(k,1); break; } } }
-      }
-      const res = await upload(file.path, buildCsv(rows), rev ? { ".tag":"update", update:rev } : { ".tag":"add" });
-      if (res === "ok") {
-        done = true;
-        const ids = new Set(batch.map(o=>o.id+o.type));
-        ops = ops.filter(o => !ids.has(o.id+o.type));
-        for (const o of batch) if (o.type==="add") { const h = hist.find(x=>x.id===o.id); if (h) h.sent = true; }
-        saveQueue();
-        await upload(sumNameOf(file.path), buildSummary(rows), { ".tag":"overwrite" }).catch(()=>{});
+  /* ---------- orden natural (JP-2 antes que JP-10) ---------- */
+  function ordenNatural(a, b) {
+    const ta = String(a).match(/\d+|\D+/g) || [];
+    const tb = String(b).match(/\d+|\D+/g) || [];
+    for (let i = 0; i < Math.max(ta.length, tb.length); i++) {
+      const x = ta[i], y = tb[i];
+      if (x === undefined) return -1;
+      if (y === undefined) return 1;
+      const nx = /^\d/.test(x), ny = /^\d/.test(y);
+      if (nx && ny) {
+        const d = Number(x) - Number(y);
+        if (d) return d < 0 ? -1 : 1;
+        if (x.length !== y.length) return x.length - y.length;
       } else {
-        await new Promise(r => setTimeout(r, 300 + Math.random()*700));   // otro móvil escribió a la vez: reintentar
+        const c = x.localeCompare(y, 'es', { sensitivity: 'base' });
+        if (c) return c;
       }
     }
-    if (!done) throw new Error("Conflicto repetido");
-    if (netDown === true) setNet(false);
-  } catch (e) {
-    failed = true;
-    if (e instanceof NetError) { if (!netDown) beepErr(); setNet(true); }
-    else if (e.message === "NOAUTH") { flushing = false; showLogin(); return; }
-    else toast("Error al guardar: " + e.message, 4000);
-    retryTimer = setTimeout(flush, 5000);
+    return a < b ? -1 : a > b ? 1 : 0;
   }
-  flushing = false;
-  if (!failed && ops.length) flush();   // lecturas hechas mientras se enviaba el lote anterior
-}
-document.addEventListener("pointerdown", () => { try { actx = actx || new (window.AudioContext||window.webkitAudioContext)(); actx.resume(); } catch {} }, { once:true });
-setInterval(()=>{ if (!netDown && ops.length && !flushing) flush(); }, 10000);
-window.addEventListener("beforeunload", e => { if (ops.length) { e.preventDefault(); e.returnValue = ""; } });
 
-/* ---------- pantalla ---------- */
-function renderPending(){
-  const n = ops.length;
-  $("bannerPend").classList.toggle("hidden", n === 0 || netDown);
-  $("bannerPend").textContent = `Enviando a Dropbox… (${n} pendiente${n>1?"s":""})`;
-}
-function renderHist(){
-  $("hist").innerHTML = hist.slice(0,20).map(h => `<li class="${h.undone?"undone":""}"><span class="t">${h.row.f.slice(11)}</span><span class="c">${h.row.c}</span><span class="q">×${h.row.q}</span><span class="s">${h.undone?"":h.sent?"✓":"⏳"}</span></li>`).join("") || '<li><span class="c" style="color:#9ca3af">Todavía no hay lecturas</span></li>';
-}
-function show(view){
-  for (const v of ["vLogin","vFiles","vScan"]) $(v).classList.toggle("hidden", v !== view);
-  $("btnLogout").classList.toggle("hidden", view === "vLogin");
-  $("btnChange").classList.toggle("hidden", view !== "vScan");
-  if (view !== "vScan") stopCamera();
-}
-function showLogin(){ $("title").textContent = "Inventario"; show("vLogin"); }
-async function showFiles(){
-  $("title").textContent = "Inventario"; show("vFiles");
-  const d = nowMadrid().slice(0,10);
-  $("newName").value = "inventario_" + d;
-  $("fileList").innerHTML = ""; $("filesMsg").textContent = "Cargando…";
-  try {
-    const list = await listCsv();
-    $("filesMsg").textContent = list.length ? "" : "No hay inventarios todavía.";
-    for (const f of list) {
-      const b = document.createElement("button"); b.textContent = f.name;
-      b.onclick = () => openFile({ path:f.path_display, name:f.name });
-      $("fileList").appendChild(b);
+  /* ---------- rutas y nombres ---------- */
+  function validarNombre(n) {
+    if (typeof n !== 'string' || !n || n !== n.trim() || /[\/\\]/.test(n) || n === '.' || n === '..' || n.includes('..')) {
+      throw new Error('Nombre no válido: «' + n + '»');
     }
-  } catch (e) {
-    if (e.message === "NOAUTH") return showLogin();
-    $("filesMsg").innerHTML = '<span class="err">' + (e instanceof NetError ? "Sin conexión. No se puede ver la lista de archivos." : "Error: " + e.message) + '</span>';
+    return n;
   }
-}
-async function createFile(){
-  const name = sanitizeName($("newName").value);
-  if (!name) { toast("Escribe un nombre"); return; }
-  const path = "/" + name + ".csv";
-  try {
-    const res = await upload(path, buildCsv([]), { ".tag":"add" });
-    if (res === "conflict") { toast("Ya existe un archivo con ese nombre", 3000); return; }
-    await upload(sumNameOf(path), buildSummary([]), { ".tag":"overwrite" }).catch(()=>{});
-    openFile({ path, name: name + ".csv" });
-  } catch (e) {
-    if (e.message === "NOAUTH") return showLogin();
-    toast(e instanceof NetError ? "Sin conexión. No se puede crear el archivo." : "Error: " + e.message, 3500);
+  function unirRuta(carpeta, nombre) {
+    validarNombre(nombre);
+    if (typeof carpeta !== 'string' || !carpeta.startsWith('/')) throw new Error('Carpeta no válida: ' + carpeta);
+    return carpeta.replace(/\/+$/, '') + '/' + nombre;
   }
-}
-function openFile(f){
-  file = f; LS.set("file", f); loadQueue();
-  $("title").textContent = f.name; show("vScan"); renderHist(); renderPending(); setMode(LS.get("mode","A")); startCamera(); flush();
-}
-
-/* ---------- sonido / vibración ---------- */
-let actx;
-function tone(freq, ms, vol=.25){ try { actx = actx || new (window.AudioContext||window.webkitAudioContext)(); const o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=freq; g.gain.value=vol; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + ms/1000); } catch {} }
-function beepOk(){ tone(1500, 90); navigator.vibrate?.(60); }
-function beepErr(){ tone(300, 250); setTimeout(()=>tone(300,250), 320); navigator.vibrate?.([200,100,200]); }
-
-/* ---------- cámara y lectura ---------- */
-const detector = new BarcodeDetector({ formats:["ean_13","ean_8","upc_a","upc_e","code_128","code_39"] });
-let stream = null, loopOn = false, mode = "A";
-let cur = { code:null, at:0 };          // último código visto en la cámara
-let lastRecorded = { code:null, goneAt:0, present:false };
-let modalOpen = false;
-
-/* En los libros japoneses hay dos códigos: el ISBN (978/979) y uno de precio que empieza por 19x. Ese segundo se ignora. */
-function pick(list){
-  const vals = list.map(b => b.rawValue).filter(v => v && !(v.length===13 && /^19\d/.test(v)));
-  return vals.find(v => /^97[89]/.test(v)) || vals[0] || null;
-}
-async function startCamera(){
-  if (stream) return;
-  $("hint").textContent = "Iniciando cámara…";
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:"environment" }, width:{ ideal:1280 }, height:{ ideal:720 } }, audio:false });
-    $("video").srcObject = stream; await $("video").play();
-    loopOn = true; loop();
-    updateHint();
-  } catch (e) {
-    $("hint").innerHTML = '<span class="err">No se puede usar la cámara. Permite el acceso a la cámara en el navegador.</span>';
+  function nombreDeRuta(ruta) { const p = String(ruta).split('/').filter(Boolean); return p[p.length - 1] || ''; }
+  function nombreCSV(destino, d) { return `${destino.nombre}_${fecha(d)}.csv`; }
+  function nombreResumen(nombreCsv) { return nombreCsv.replace(/\.csv$/i, '') + '_resumen.csv'; }
+  function conSufijo(base, n) { return n > 1 ? `${base}_${n}.jpg` : `${base}.jpg`; }
+  function nombreFoto(destino, d, n = 1) { return conSufijo(`${destino.nombre}_${sello(d)}`, n); }
+  function esResumen(n) { return /_resumen\.csv$/i.test(n); }
+  function esCSVInventario(n) { return /\.csv$/i.test(n) && !esResumen(n); }
+  function normalizarNombreCSV(entrada) {
+    let n = String(entrada || '').trim();
+    if (!n) throw new Error('Escribe un nombre de archivo');
+    if (!/\.csv$/i.test(n)) n += '.csv';
+    validarNombre(n);
+    if (esResumen(n)) throw new Error('Ese nombre es el de un resumen: elige otro');
+    return n;
   }
-}
-function stopCamera(){ loopOn = false; if (stream) { stream.getTracks().forEach(t=>t.stop()); stream = null; } }
-document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); else if (!$("vScan").classList.contains("hidden")) startCamera(); });
+  function idiomaPorId(id, config) { return (config || CONFIG).idiomas.find(i => i.id === id) || null; }
+  function destinoEstanteria(idioma, nombre) {
+    validarNombre(nombre);
+    return { idioma: idioma.id, tipo: 'estanteria', etiqueta: nombre, nombre, carpeta: unirRuta(idioma.estanterias, nombre) };
+  }
+  function destinosFijos(idioma) {
+    return (idioma.fijos || []).map(f => ({ idioma: idioma.id, tipo: 'fijo', etiqueta: f.etiqueta, nombre: nombreDeRuta(f.carpeta), carpeta: f.carpeta }));
+  }
 
-async function loop(){
-  while (loopOn) {
-    const v = $("video");
-    if (v.readyState >= 2 && !modalOpen) {
+  /* ---------- CSV y resumen ---------- */
+  const codificador = new TextEncoder();
+  function codificar(texto) { return codificador.encode(texto); }
+  function decodificar(bytes) { return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF+/, ''); }
+  function lineaCSV(l) { return `${l.fecha_hora};${l.codigo};${l.cantidad}`; }
+  function filasDe(texto) {
+    const t = String(texto || '').replace(/^\uFEFF+/, '');
+    const f = t.split(/\r\n|\n|\r/);
+    while (f.length && f[f.length - 1] === '') f.pop();
+    return f;
+  }
+  // Devuelve el texto nuevo del CSV: quita (desde el final) una aparición de cada línea de «borrar» y añade «añadir».
+  function modificarCSV(textoActual, añadir, borrar) {
+    let filas = filasDe(textoActual);
+    if (!filas.length || !filas.some(x => x.trim())) filas = [CAB_CSV];
+    const inicio = filas[0].trim().toLowerCase() === CAB_CSV ? 1 : 0;
+    const noEncontradas = [];
+    for (const b of borrar || []) {
+      let k = -1;
+      for (let i = filas.length - 1; i >= inicio; i--) if (filas[i] === b) { k = i; break; }
+      if (k >= 0) filas.splice(k, 1); else noEncontradas.push(b);
+    }
+    for (const a of añadir || []) filas.push(a);
+    return { texto: BOM + filas.join(CRLF) + CRLF, noEncontradas };
+  }
+  function analizarCSV(texto) {
+    const lineas = []; let invalidas = 0; let cabecera = false;
+    for (const f of filasDe(texto)) {
+      if (!f.trim()) continue;
+      if (!cabecera && !lineas.length && f.trim().toLowerCase() === CAB_CSV) { cabecera = true; continue; }
+      const p = f.split(';');
+      const cantidad = Number(p[2]);
+      if (p.length < 3 || !p[1] || !Number.isFinite(cantidad)) { invalidas++; continue; }
+      lineas.push({ fecha_hora: p[0], codigo: p[1], cantidad });
+    }
+    return { lineas, invalidas, cabecera };
+  }
+  function filasResumen(lineas) {
+    const m = new Map();
+    for (const l of lineas) {
+      const r = m.get(l.codigo) || { codigo: l.codigo, cantidad_total: 0, lecturas: 0 };
+      r.cantidad_total += l.cantidad; r.lecturas += 1; m.set(l.codigo, r);
+    }
+    return [...m.values()].sort((a, b) => (a.codigo < b.codigo ? -1 : a.codigo > b.codigo ? 1 : 0));
+  }
+  function construirResumen(lineas) {
+    return BOM + [CAB_RESUMEN, ...filasResumen(lineas).map(r => `${r.codigo};${r.cantidad_total};${r.lecturas}`)].join(CRLF) + CRLF;
+  }
+  function analizarResumen(texto) {
+    const out = [];
+    filasDe(texto).forEach((f, i) => {
+      if (i === 0 && f.trim().toLowerCase() === CAB_RESUMEN) return;
+      if (!f.trim()) return;
+      const p = f.split(';');
+      out.push({ codigo: p[0], cantidad_total: Number(p[1]), lecturas: Number(p[2]) });
+    });
+    return out;
+  }
+
+  /* ---------- utilidades ---------- */
+  // Cabecera Dropbox-API-Arg: solo ASCII; lo demás como \uXXXX.
+  function argDropbox(obj) {
+    return JSON.stringify(obj).replace(/[\u007f-\uffff]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+  }
+  function tamañoDe(datos) { return datos ? (datos.byteLength != null ? datos.byteLength : datos.size) : 0; }
+  // content_hash de Dropbox: SHA-256 de cada bloque de 4 MB, concatenados, y SHA-256 del total.
+  async function hashDropbox(datos, cripto) {
+    const c = cripto || globalThis.crypto;
+    const u8 = ArrayBuffer.isView(datos) ? new Uint8Array(datos.buffer, datos.byteOffset, datos.byteLength) : new Uint8Array(datos);
+    const B = 4 * 1024 * 1024, partesH = [];
+    for (let i = 0; i < u8.length; i += B) partesH.push(new Uint8Array(await c.subtle.digest('SHA-256', u8.slice(i, i + B))));
+    const todo = new Uint8Array(partesH.length * 32);
+    partesH.forEach((p, i) => todo.set(p, i * 32));
+    const h = new Uint8Array(await c.subtle.digest('SHA-256', todo));
+    return Array.from(h, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function uid() {
+    if (globalThis.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  }
+  function uriRedireccion(loc) {
+    let p = loc.pathname.replace(/index\.html?$/i, '');
+    if (!p.endsWith('/')) p += '/';
+    return loc.origin + p;
+  }
+
+  /* ---------- errores ---------- */
+  class ErrorDropbox extends Error {
+    constructor(mensaje, datos) { super(mensaje); this.name = 'ErrorDropbox'; Object.assign(this, datos || {}); }
+  }
+  function mensajeError(e) {
+    if (!e) return '';
+    switch (e.tipo) {
+      case 'red': return 'Sin conexión con Dropbox. Se reintentará solo.';
+      case 'no_existe': return e.paraUsuario || ('No existe en Dropbox: ' + (e.ruta || ''));
+      case 'auth':
+        if (/missing_scope/.test(e.resumen || '')) return 'A la app de Dropbox le falta un permiso (' + e.resumen + '). Revisa los permisos en dropbox.com/developers y vuelve a conectar.';
+        return 'La conexión con Dropbox ha caducado o se ha revocado. Vuelve a conectar este móvil.';
+      case 'conflicto_repetido': return 'Muchos móviles escribiendo a la vez en el mismo archivo. Se reintentará.';
+      case 'limite': return 'Dropbox pide esperar un poco (demasiadas peticiones). Se reintentará.';
+      case 'servidor': return 'Dropbox no responde bien ahora mismo. Se reintentará.';
+      default: return e.message || String(e);
+    }
+  }
+
+  /* ---------- OAuth 2 PKCE ---------- */
+  function base64url(bytes) {
+    let s = '';
+    for (const b of bytes) s += String.fromCharCode(b);
+    return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function aleatorio(n, cripto) { const a = new Uint8Array(n); cripto.getRandomValues(a); return base64url(a); }
+  async function retoPKCE(verificador, cripto) {
+    return base64url(new Uint8Array(await cripto.subtle.digest('SHA-256', codificar(verificador))));
+  }
+  function crearAuth({ fetch, almacen, appKey, redirectUri, ahora = () => Date.now(), cripto = globalThis.crypto }) {
+    const K = 'invscan.auth', KP = 'invscan.pkce';
+    const leer = () => { try { return JSON.parse(almacen.getItem(K)) || {}; } catch (e) { return {}; } };
+    const escribir = o => almacen.setItem(K, JSON.stringify(o));
+    async function urlAutorizacion() {
+      const verificador = aleatorio(48, cripto), estado = aleatorio(16, cripto);
+      almacen.setItem(KP, JSON.stringify({ verificador, estado }));
+      const q = new URLSearchParams({
+        client_id: appKey, response_type: 'code', code_challenge: await retoPKCE(verificador, cripto),
+        code_challenge_method: 'S256', token_access_type: 'offline', redirect_uri: redirectUri, state: estado,
+      });
+      return AUTORIZAR_URL + '?' + q.toString();
+    }
+    async function pedirToken(campos) {
+      let res;
       try {
-        const code = pick(await detector.detect(v));
-        const now = Date.now();
-        if (code) cur = { code, at:now };
-        // ¿sigue delante de la cámara el último código registrado?
-        if (lastRecorded.code) {
-          if (code === lastRecorded.code) lastRecorded.present = true, lastRecorded.goneAt = 0;
-          else if (lastRecorded.present && !lastRecorded.goneAt) lastRecorded.goneAt = now;
-        }
-        onFrame(now);
-      } catch {}
+        res = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(campos).toString() });
+      } catch (e) { throw new ErrorDropbox('Sin conexión con Dropbox', { tipo: 'red', causa: e }); }
+      const texto = await res.text();
+      let d = {}; try { d = JSON.parse(texto); } catch (e) { /* no es JSON */ }
+      if (!res.ok) {
+        const tipo = (res.status === 400 || res.status === 401) ? 'auth' : res.status >= 500 ? 'servidor' : 'otro';
+        throw new ErrorDropbox(`Dropbox (token) ${res.status}: ${d.error_description || d.error || texto.slice(0, 160)}`, { tipo, estado: res.status });
+      }
+      return d;
     }
-    await new Promise(r => setTimeout(r, 120));
+    async function completar(params) {
+      if (params.get('error')) throw new ErrorDropbox('Dropbox no dio permiso: ' + (params.get('error_description') || params.get('error')), { tipo: 'auth' });
+      let pkce = {}; try { pkce = JSON.parse(almacen.getItem(KP)) || {}; } catch (e) { /* nada */ }
+      const code = params.get('code');
+      if (!code || !pkce.verificador || params.get('state') !== pkce.estado) {
+        throw new ErrorDropbox('La respuesta de Dropbox no corresponde a esta conexión. Vuelve a pulsar «Conectar con Dropbox».', { tipo: 'auth' });
+      }
+      const d = await pedirToken({ code, grant_type: 'authorization_code', code_verifier: pkce.verificador, client_id: appKey, redirect_uri: redirectUri });
+      almacen.removeItem(KP);
+      if (!d.refresh_token) throw new ErrorDropbox('Dropbox no devolvió el refresh token', { tipo: 'auth' });
+      escribir({ refresh_token: d.refresh_token, access_token: d.access_token, expira: ahora() + (Number(d.expires_in || 0) - 120) * 1000, cuenta: d.account_id || '' });
+    }
+    let renovando = null;
+    function renovar() {
+      if (!renovando) {
+        renovando = (async () => {
+          const a = leer();
+          if (!a.refresh_token) throw new ErrorDropbox('Este móvil no está conectado a Dropbox', { tipo: 'auth' });
+          try {
+            const d = await pedirToken({ grant_type: 'refresh_token', refresh_token: a.refresh_token, client_id: appKey });
+            escribir(Object.assign(leer(), { access_token: d.access_token, expira: ahora() + (Number(d.expires_in || 0) - 120) * 1000 }));
+            return d.access_token;
+          } catch (e) {
+            if (e.tipo === 'auth') almacen.removeItem(K); // refresh token revocado o no válido
+            throw e;
+          }
+        })().finally(() => { renovando = null; });
+      }
+      return renovando;
+    }
+    async function token() {
+      const a = leer();
+      if (!a.refresh_token) throw new ErrorDropbox('Este móvil no está conectado a Dropbox', { tipo: 'auth' });
+      if (a.access_token && a.expira > ahora()) return a.access_token;
+      return renovar();
+    }
+    return {
+      urlAutorizacion, completar, token, renovar,
+      conectado: () => !!leer().refresh_token,
+      desconectar: () => almacen.removeItem(K),
+    };
   }
-}
-function visibleCode(now){ return (cur.code && now - cur.at < 700) ? cur.code : null; }
-function onFrame(now){
-  const c = visibleCode(now);
-  $("curCode").textContent = c || "";
-  $("aim").classList.toggle("hit", !!c);
-  $("btnRead").disabled = mode === "A" ? !c : true;
-  if (mode === "B" && c && !modalOpen) {
-    // Mismo código que el anterior: solo se vuelve a preguntar si se ha retirado de la cámara al menos 1 s
-    const same = c === lastRecorded.code;
-    const away = lastRecorded.goneAt && now - lastRecorded.goneAt > 1000;
-    if (!same || away) openQty(c);
+
+  /* ---------- cliente de la API de Dropbox ---------- */
+  function crearDropbox({ fetch, auth, esperar = esperarMs, pathRoot = null }) {
+    let raiz = pathRoot || null;
+    // Una escritura que falla por red o con 5xx puede haber llegado igualmente: se marca «incierto»
+    // y no se reintenta aquí (la cola comprueba después si llegó). 401 y 429 no se aplican nunca: se reintentan.
+    async function llamar(url, init, ruta, opciones, intento, reautenticado) {
+      intento = intento || 0;
+      const escritura = !!(opciones && opciones.escritura);
+      const token = await auth.token();
+      const headers = Object.assign({}, init.headers, { Authorization: 'Bearer ' + token });
+      if (raiz && !(opciones && opciones.sinRaiz)) headers['Dropbox-API-Path-Root'] = raiz;
+      let res;
+      try { res = await fetch(url, Object.assign({}, init, { headers })); } catch (e) {
+        throw new ErrorDropbox('Sin conexión con Dropbox', { tipo: 'red', causa: e, ruta, incierto: escritura });
+      }
+      if (res.status === 401 && !reautenticado) { await auth.renovar(); return llamar(url, init, ruta, opciones, intento, true); }
+      if ((res.status === 429 || (res.status >= 500 && !escritura)) && intento < 3) {
+        const ra = parseFloat(res.headers.get('Retry-After'));
+        await esperar(ra > 0 ? Math.min(ra, 30) * 1000 : 400 * Math.pow(2, intento));
+        return llamar(url, init, ruta, opciones, intento + 1, reautenticado);
+      }
+      if (!res.ok) {
+        let texto = ''; try { texto = await res.text(); } catch (e) { /* nada */ }
+        let resumen = texto.slice(0, 200);
+        try { const j = JSON.parse(texto); resumen = j.error_summary || resumen; } catch (e) { /* no es JSON */ }
+        let tipo = 'otro';
+        if (res.status === 401) tipo = 'auth';
+        else if (res.status === 409) tipo = /not_found/.test(resumen) ? 'no_existe' : /conflict/.test(resumen) ? 'conflicto' : 'otro';
+        else if (res.status === 429) tipo = 'limite';
+        else if (res.status >= 500) tipo = 'servidor';
+        throw new ErrorDropbox(`Dropbox ${res.status}: ${resumen}`, { tipo, estado: res.status, resumen, ruta, incierto: escritura && res.status >= 500 });
+      }
+      return res;
+    }
+    async function rpc(endpoint, args, opciones) {
+      const res = await llamar(API + endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(args === undefined ? null : args),
+      }, args && args.path, opciones);
+      return res.json();
+    }
+    async function listar(ruta) {
+      let r = await rpc('files/list_folder', { path: ruta, recursive: false, include_deleted: false, limit: 2000 });
+      const entradas = r.entries.slice();
+      while (r.has_more) { r = await rpc('files/list_folder/continue', { cursor: r.cursor }); entradas.push(...r.entries); }
+      return entradas;
+    }
+    function metadatos(ruta) { return rpc('files/get_metadata', { path: ruta }); }
+    async function descargar(ruta) {
+      let res;
+      try {
+        res = await llamar(CONTENIDO + 'files/download', { method: 'POST', headers: { 'Dropbox-API-Arg': argDropbox({ path: ruta }) } }, ruta);
+      } catch (e) { if (e.tipo === 'no_existe') return null; throw e; }
+      let meta = {};
+      try { meta = JSON.parse(res.headers.get('Dropbox-API-Result') || '{}'); } catch (e) { meta = {}; }
+      return { meta, buf: new Uint8Array(await res.arrayBuffer()) };
+    }
+    async function subir(ruta, datos, modo) {
+      const res = await llamar(CONTENIDO + 'files/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream', 'Dropbox-API-Arg': argDropbox({ path: ruta, mode: modo, autorename: false, mute: true, strict_conflict: true }) },
+        body: datos,
+      }, ruta, { escritura: true });
+      return res.json();
+    }
+    async function prepararRaiz() {
+      const c = await rpc('users/get_current_account', undefined, { sinRaiz: true });
+      const ri = c.root_info || {};
+      raiz = (ri.root_namespace_id && ri.home_namespace_id && String(ri.root_namespace_id) !== String(ri.home_namespace_id))
+        ? JSON.stringify({ '.tag': 'root', root: String(ri.root_namespace_id) }) : null;
+      return raiz;
+    }
+    function cuenta() { return rpc('users/get_current_account', undefined, { sinRaiz: true }); }
+    return { listar, metadatos, descargar, subir, prepararRaiz, cuenta, raiz: () => raiz };
   }
-}
-function markRecorded(code){ lastRecorded = { code, goneAt:0, present:true }; }
-function updateHint(){
-  $("hint").textContent = mode === "A" ? "Apunta al código y pulsa «Registrar» por cada unidad." : "Apunta al código: se pedirá la cantidad.";
-  $("btnRead").classList.toggle("hidden", mode === "B");
-}
-function setMode(m){ mode = m; LS.set("mode", m); $("modeA").classList.toggle("on", m==="A"); $("modeB").classList.toggle("on", m==="B"); updateHint(); }
 
-function openQty(code){
-  modalOpen = true; navigator.vibrate?.(40); tone(1100, 60, .15);
-  $("qtyCode").textContent = code; $("qInput").value = 1; $("qtyModal").classList.remove("hidden");
-  $("qtyModal").dataset.code = code;
-}
-function closeQty(){ modalOpen = false; $("qtyModal").classList.add("hidden"); }
+  async function listarEstanterias(dbx, idioma) {
+    try {
+      const e = await dbx.listar(idioma.estanterias);
+      return e.filter(x => x['.tag'] === 'folder').map(x => x.name).sort(ordenNatural);
+    } catch (err) {
+      if (err.tipo === 'no_existe') err.paraUsuario = `No existe en Dropbox la carpeta de estanterías de ${idioma.nombre}:\n${idioma.estanterias}`;
+      throw err;
+    }
+  }
+  async function listarCSV(dbx, destino) {
+    try {
+      const e = await dbx.listar(destino.carpeta);
+      return e.filter(x => x['.tag'] === 'file' && esCSVInventario(x.name))
+        .sort((a, b) => String(b.server_modified || '').localeCompare(String(a.server_modified || '')));
+    } catch (err) {
+      if (err.tipo === 'no_existe') err.paraUsuario = `No existe en Dropbox la carpeta del destino:\n${destino.carpeta}`;
+      throw err;
+    }
+  }
 
-/* ---------- eventos ---------- */
-$("btnLogin").onclick = startLogin;
-$("btnLogout").onclick = () => { if (ops.length && !confirm("Hay lecturas sin enviar en este móvil. ¿Desconectar igualmente?")) return; LS.del("dbx"); LS.del("file"); file = null; showLogin(); };
-$("btnChange").onclick = () => { LS.del("file"); showFiles(); };
-$("btnCreate").onclick = createFile;
-$("modeA").onclick = () => setMode("A");
-$("modeB").onclick = () => setMode("B");
-$("btnRead").onclick = () => { const c = visibleCode(Date.now()); if (!c) { toast("No se ve ningún código"); return; } addRow(c, 1); markRecorded(c); };
-$("btnUndo").onclick = undoLast;
-$("qMinus").onclick = () => { $("qInput").value = Math.max(1, (parseInt($("qInput").value)||1) - 1); };
-$("qPlus").onclick  = () => { $("qInput").value = (parseInt($("qInput").value)||0) + 1; };
-$("qCancel").onclick = () => { markRecorded($("qtyModal").dataset.code); closeQty(); };
-$("qOk").onclick = () => {
-  const q = parseInt($("qInput").value);
-  if (!q || q < 1) { toast("Cantidad no válida"); return; }
-  const c = $("qtyModal").dataset.code; addRow(c, q); markRecorded(c); closeQty();
-};
+  /* ---------- la app no crea carpetas: comprobar antes de escribir ---------- */
+  // Se comprueba justo antes de escribir (validez corta): Dropbox crearía la carpeta si no existiera al subir.
+  function crearComprobadorCarpetas(dbx, { ahora = () => Date.now(), validez = 15 * 1000 } = {}) {
+    const vistas = new Map();
+    return {
+      async comprobar(carpeta) {
+        const t = vistas.get(carpeta);
+        if (t && ahora() - t < validez) return;
+        let meta;
+        try { meta = await dbx.metadatos(carpeta); } catch (e) {
+          if (e.tipo === 'no_existe') {
+            e.paraUsuario = `No existe en Dropbox la carpeta del destino (la app no crea carpetas):\n${carpeta}`;
+          }
+          throw e;
+        }
+        if (meta['.tag'] !== 'folder') {
+          throw new ErrorDropbox('No es una carpeta: ' + carpeta, { tipo: 'no_existe', ruta: carpeta, paraUsuario: `La ruta del destino no es una carpeta:\n${carpeta}` });
+        }
+        vistas.set(carpeta, ahora());
+      },
+      olvidar(carpeta) { vistas.delete(carpeta); },
+    };
+  }
 
-/* ---------- inicio ---------- */
-(async () => {
-  await finishLoginIfReturning();
-  if (!LS.get("dbx")) return showLogin();
-  if (file) openFile(file); else showFiles();
+  /* ---------- escritura concurrente: descargar + rev → subir con update/rev ---------- */
+  async function escribirConReintento(dbx, ruta, transformar, opciones) {
+    const o = Object.assign({ maxIntentos: 8, esperar: esperarMs, antesDeSubir: () => {}, alConflicto: () => {} }, opciones || {});
+    for (let i = 0; i < o.maxIntentos; i++) {
+      const act = await dbx.descargar(ruta);
+      if (act && !act.meta.rev) throw new ErrorDropbox('Dropbox no devolvió la versión (rev) de ' + ruta, { tipo: 'otro', ruta });
+      const base = act ? decodificar(act.buf) : null;
+      const nuevo = transformar(base);
+      o.antesDeSubir(nuevo, base);
+      const modo = act ? { '.tag': 'update', update: act.meta.rev } : 'add';
+      try {
+        const meta = await dbx.subir(ruta, codificar(nuevo), modo);
+        return { rev: meta.rev, texto: nuevo, intentos: i + 1 };
+      } catch (e) {
+        if (e.tipo !== 'conflicto') throw e;
+        o.alConflicto(e);
+        await o.esperar(Math.min(4000, 250 * Math.pow(2, i)) * (0.5 + Math.random()));
+      }
+    }
+    throw new ErrorDropbox(`No se pudo escribir ${ruta}: demasiados conflictos seguidos`, { tipo: 'conflicto_repetido', ruta });
+  }
+
+  // Rehace el resumen del CSV. Orden: 1) rev del resumen, 2) estado actual del CSV, 3) subir el resumen con
+  // update + esa rev (o add). Si otro móvil escribe el resumen entretanto, hay conflicto y se repite con datos
+  // nuevos: un resumen calculado con un CSV viejo no puede pisar a uno más nuevo.
+  async function regenerarResumen(dbx, carpeta, csv, conocido, opciones) {
+    const o = Object.assign({ maxIntentos: 8, esperar: esperarMs }, opciones || {});
+    const rutaCsv = unirRuta(carpeta, csv), rutaRes = unirRuta(carpeta, nombreResumen(csv));
+    let actual = conocido && conocido.texto != null ? { rev: conocido.rev, texto: conocido.texto } : null;
+    for (let i = 0; i < o.maxIntentos; i++) {
+      let metaRes = null;
+      try { metaRes = await dbx.metadatos(rutaRes); } catch (e) { if (e.tipo !== 'no_existe') throw e; }
+      let metaCsv;
+      try { metaCsv = await dbx.metadatos(rutaCsv); } catch (e) { if (e.tipo === 'no_existe') return true; throw e; }
+      if (!actual || actual.rev !== metaCsv.rev) {
+        const act = await dbx.descargar(rutaCsv);
+        if (!act) return true;
+        actual = { rev: act.meta.rev, texto: decodificar(act.buf) };
+      }
+      const modo = metaRes ? { '.tag': 'update', update: metaRes.rev } : 'add';
+      try {
+        await dbx.subir(rutaRes, codificar(construirResumen(analizarCSV(actual.texto).lineas)), modo);
+        return true;
+      } catch (e) {
+        if (e.tipo !== 'conflicto' && !e.incierto) throw e;
+        if (e.tipo === 'red') throw e;
+        await o.esperar(Math.min(4000, 250 * Math.pow(2, i)) * (0.5 + Math.random()));
+      }
+    }
+    throw new ErrorDropbox(`No se pudo rehacer ${rutaRes}: demasiados conflictos seguidos`, { tipo: 'conflicto_repetido', ruta: rutaRes });
+  }
+
+  // Cuántas veces aparece cada línea en un CSV (para saber si una subida dudosa llegó).
+  function contarLineas(texto, lineas) {
+    const m = Object.create(null);
+    for (const x of lineas) m[x] = 0;
+    if (texto != null) for (const f of filasDe(texto)) if (f in m) m[f]++;
+    return m;
+  }
+  function vueloLlego(v, texto) {
+    const sube = v.sube || {}, baja = v.baja || {};
+    const c = contarLineas(texto, [...Object.keys(sube), ...Object.keys(baja)]);
+    if (Object.keys(sube).length) return Object.keys(sube).every(x => c[x] >= sube[x]);
+    return Object.keys(baja).every(x => c[x] <= baja[x]);
+  }
+
+  /* ---------- cola de lecturas (localStorage) ----------
+     estados: pendiente → enviando → enviada · anular: pendiente → anulada,
+     enviada → borrar → borrando → anulada. Todo (lecturas, «vuelos» y resúmenes pendientes) se guarda en UNA
+     clave, de una vez. Si una subida queda en duda (se corta la red o Dropbox da 5xx), se guarda un «vuelo»: cuántas
+     veces debe aparecer cada línea si la subida llegó; en la siguiente vuelta se cuenta en el CSV y así no se
+     duplica ni se pierde nada, aunque otros móviles hayan añadido o borrado líneas entretanto. */
+  function crearColaLecturas({ dbx, almacen, carpetas, ahora = () => new Date(), alCambiar = () => {}, esperar = esperarMs, maxFinales = 300 }) {
+    const K = 'invscan.cola';
+    let guardado = null;
+    try { guardado = JSON.parse(almacen.getItem(K)); } catch (e) { guardado = null; }
+    let lista = (guardado && guardado.lista) || [], vuelos = (guardado && guardado.vuelos) || {}, resumenes = (guardado && guardado.resumenes) || [];
+    const clave = l => l.carpeta + '|' + l.csv;
+    const partirClave = c => { const i = c.lastIndexOf('|'); return [c.slice(0, i), c.slice(i + 1)]; };
+    for (const l of lista) {
+      if (vuelos[clave(l)]) continue;
+      if (l.estado === 'enviando') { l.estado = l.anular ? 'anulada' : 'pendiente'; delete l.anular; }
+      if (l.estado === 'borrando') l.estado = 'borrar';
+    }
+    function guardar() {
+      almacen.setItem(K, JSON.stringify({ lista, vuelos, resumenes }));
+      try { alCambiar(); } catch (e) { /* la interfaz no debe romper la cola */ }
+    }
+    function recortar() {
+      const finales = lista.filter(l => l.estado === 'enviada' || l.estado === 'anulada');
+      if (finales.length > maxFinales) {
+        const quitar = new Set(finales.slice(0, finales.length - maxFinales));
+        lista = lista.filter(l => !quitar.has(l));
+      }
+    }
+    function registrar({ destino, csv, codigo, cantidad }) {
+      const c = limpiarCodigo(codigo);
+      if (!c) throw new Error('Código vacío');
+      if (esCodigoPrecio(c)) throw new Error('Es el código del precio (19…): no se registra');
+      const n = Number(cantidad);
+      if (!Number.isInteger(n) || n < 1 || n > 99999) throw new Error('Cantidad no válida');
+      validarNombre(csv);
+      if (!esCSVInventario(csv)) throw new Error('Archivo no válido: ' + csv);
+      unirRuta(destino.carpeta, csv);
+      const l = { id: uid(), carpeta: destino.carpeta, destino: destino.nombre, csv, fecha_hora: fechaHora(ahora()), codigo: c, cantidad: n, estado: 'pendiente' };
+      lista.push(l); recortar(); guardar();
+      return l;
+    }
+    function anularUltima(carpeta, csv) {
+      for (let i = lista.length - 1; i >= 0; i--) {
+        const l = lista[i];
+        if (l.carpeta !== carpeta || l.csv !== csv) continue;
+        if (l.estado === 'anulada' || l.estado === 'borrar' || l.estado === 'borrando' || l.anular) continue;
+        if (l.estado === 'pendiente') l.estado = 'anulada';
+        else if (l.estado === 'enviando') l.anular = true;
+        else if (l.estado === 'enviada') l.estado = 'borrar';
+        guardar();
+        return l;
+      }
+      return null;
+    }
+    function resolverVuelo(c, v, llego) {
+      const ids = new Set(v.ids || []), bor = new Set(v.borrados || []);
+      for (const l of lista) {
+        if (ids.has(l.id) && l.estado === 'enviando') {
+          l.estado = llego ? (l.anular ? 'borrar' : 'enviada') : (l.anular ? 'anulada' : 'pendiente');
+          delete l.anular;
+        }
+        if (bor.has(l.id) && l.estado === 'borrando') l.estado = llego ? 'anulada' : 'borrar';
+      }
+      delete vuelos[c];
+      if (llego && !resumenes.includes(c)) resumenes.push(c);
+      guardar();
+    }
+    async function procesar(c) {
+      const [carpeta, csv] = partirClave(c);
+      const ruta = unirRuta(carpeta, csv);
+      let subidas = 0, conocido = null;
+      if (vuelos[c]) {
+        const act = await dbx.descargar(ruta);
+        resolverVuelo(c, vuelos[c], vueloLlego(vuelos[c], act ? decodificar(act.buf) : null));
+      }
+      for (let vuelta = 0; vuelta < 3; vuelta++) {
+        const items = lista.filter(l => clave(l) === c && (l.estado === 'pendiente' || l.estado === 'borrar'));
+        if (!items.length) break;
+        await carpetas.comprobar(carpeta);
+        const adds = items.filter(l => l.estado === 'pendiente'), dels = items.filter(l => l.estado === 'borrar');
+        const v = { ids: adds.map(l => l.id), borrados: dels.map(l => l.id) };
+        adds.forEach(l => { l.estado = 'enviando'; });
+        dels.forEach(l => { l.estado = 'borrando'; });
+        guardar();
+        try {
+          conocido = await escribirConReintento(dbx, ruta, texto => modificarCSV(texto, adds.map(lineaCSV), dels.map(lineaCSV)).texto, {
+            esperar,
+            antesDeSubir: (nuevo, base) => {
+              const cuenta = contarLineas(base, [...adds, ...dels].map(lineaCSV));
+              const sube = {}, baja = {};
+              for (const l of adds) { const x = lineaCSV(l); sube[x] = (x in sube ? sube[x] : cuenta[x]) + 1; }
+              for (const l of dels) { const x = lineaCSV(l); baja[x] = Math.max(0, (x in baja ? baja[x] : cuenta[x]) - 1); }
+              vuelos[c] = Object.assign({}, v, { sube, baja });
+              guardar();
+            },
+            alConflicto: () => { delete vuelos[c]; guardar(); },
+          });
+        } catch (e) {
+          if (e.incierto && vuelos[c]) throw e; // no se sabe si llegó: se cuenta en la próxima vuelta
+          resolverVuelo(c, v, false);
+          throw e;
+        }
+        resolverVuelo(c, v, true);
+        subidas++;
+      }
+      if (resumenes.includes(c)) {
+        await carpetas.comprobar(carpeta);
+        await regenerarResumen(dbx, carpeta, csv, conocido, { esperar });
+        resumenes = resumenes.filter(x => x !== c);
+        guardar();
+      }
+      return subidas;
+    }
+    let enMarcha = null;
+    async function hacer() {
+      const errores = []; let subidas = 0;
+      const claves = new Set([
+        ...lista.filter(l => ['pendiente', 'borrar', 'enviando', 'borrando'].includes(l.estado)).map(clave),
+        ...Object.keys(vuelos), ...resumenes,
+      ]);
+      for (const c of claves) {
+        try { subidas += await procesar(c); } catch (e) {
+          errores.push(e);
+          if (e.tipo === 'red' || e.tipo === 'auth') break;
+        }
+      }
+      return { subidas, errores };
+    }
+    function sincronizar() {
+      if (!enMarcha) enMarcha = hacer().finally(() => { enMarcha = null; });
+      return enMarcha;
+    }
+    const pendientes = () => lista.filter(l => ['pendiente', 'enviando', 'borrar', 'borrando'].includes(l.estado)).length;
+    return { registrar, anularUltima, sincronizar, pendientes, resumenesPendientes: () => resumenes.length, todas: () => lista.slice(), clave };
+  }
+
+  /* ---------- cola de fotos (almacén asíncrono: IndexedDB en el móvil) ---------- */
+  function crearColaFotos({ dbx, almacen, carpetas, ahora = () => new Date(), alCambiar = () => {}, hash = d => hashDropbox(d), maxEnviadas = 30 }) {
+    let fotos = [];
+    const avisar = () => { try { alCambiar(); } catch (e) { /* nada */ } };
+    async function cargar() {
+      fotos = ((await almacen.todas()) || []).sort((a, b) => a.t - b.t);
+      for (const f of fotos) if (f.estado === 'enviando') f.estado = 'pendiente';
+      avisar();
+    }
+    async function recortar() {
+      const env = fotos.filter(f => f.estado === 'enviada');
+      const sobran = env.slice(0, Math.max(0, env.length - maxEnviadas));
+      for (const f of sobran) await almacen.quitar(f.id);
+      fotos = fotos.filter(f => !sobran.includes(f));
+    }
+    async function añadir(destino, datos, miniatura) {
+      const d = ahora();
+      const base = `${destino.nombre}_${sello(d)}`;
+      unirRuta(destino.carpeta, conSufijo(base, 1));
+      const f = { id: uid(), carpeta: destino.carpeta, destino: destino.nombre, base, nombre: null, datos, tamaño: tamañoDe(datos), miniatura: miniatura || null, estado: 'pendiente', error: null, t: d.getTime() };
+      await almacen.poner(f);
+      fotos.push(f);
+      avisar();
+      return f;
+    }
+    async function subirUna(f) {
+      await carpetas.comprobar(f.carpeta);
+      f.inciertos = f.inciertos || [];
+      let miHash = null;
+      for (let n = 1; n <= 30; n++) {
+        const nombre = conSufijo(f.base, n);
+        const ruta = unirRuta(f.carpeta, nombre);
+        try { await dbx.subir(ruta, f.datos, 'add'); return nombre; } catch (e) {
+          if (e.incierto) { if (!f.inciertos.includes(nombre)) f.inciertos.push(nombre); throw e; }
+          if (e.tipo !== 'conflicto') throw e;
+          if (!f.inciertos.includes(nombre)) continue; // el nombre es de otra foto: siguiente sufijo
+          // Este nombre se intentó antes sin saber si llegó: ¿es la misma foto? Entonces no se duplica.
+          let meta = null;
+          try { meta = await dbx.metadatos(ruta); } catch (e2) { if (e2.tipo === 'red' || e2.tipo === 'auth') throw e2; }
+          if (meta && meta.size === f.tamaño && meta.content_hash) {
+            if (miHash == null) miHash = await hash(f.datos);
+            if (meta.content_hash === miHash) return nombre;
+          }
+        }
+      }
+      throw new ErrorDropbox('Hay demasiadas fotos con el mismo nombre: ' + f.base, { tipo: 'otro' });
+    }
+    let enMarcha = null;
+    async function hacer() {
+      const errores = []; let enviadas = 0;
+      for (const f of fotos.filter(x => x.estado === 'pendiente')) {
+        f.estado = 'enviando'; f.error = null; avisar();
+        try {
+          f.nombre = await subirUna(f);
+          f.estado = 'enviada'; f.datos = null; enviadas++;
+          await almacen.poner(f);
+        } catch (e) {
+          f.estado = 'pendiente'; f.error = mensajeError(e); errores.push(e);
+          try { await almacen.poner(f); } catch (e2) { /* nada */ }
+          if (e.tipo === 'red' || e.tipo === 'auth') { avisar(); break; }
+        }
+        avisar();
+      }
+      if (enviadas) await recortar();
+      avisar();
+      return { enviadas, errores };
+    }
+    function sincronizar() {
+      if (!enMarcha) enMarcha = hacer().finally(() => { enMarcha = null; });
+      return enMarcha;
+    }
+    return { cargar, añadir, sincronizar, lista: () => fotos.slice(), pendientes: () => fotos.filter(f => f.estado !== 'enviada').length };
+  }
+
+  /* ---------- modo B: no volver a preguntar el mismo código hasta que lleve ≥ ms fuera ---------- */
+  function crearFiltroRepeticion(ms = 1000) {
+    let bloqueado = null, ultimaVez = -Infinity;
+    return {
+      // Se llama con cada código detectado; devuelve true si hay que preguntar la cantidad.
+      ver(codigo, t) {
+        if (codigo === bloqueado && t - ultimaVez < ms) { ultimaVez = t; return false; }
+        bloqueado = codigo; ultimaVez = t; return true;
+      },
+      // Con la hoja abierta: el código de la hoja sigue a la vista (no cuenta como retirado).
+      tocar(codigo, t) { if (codigo === bloqueado) ultimaVez = t; },
+      reiniciar() { bloqueado = null; ultimaVez = -Infinity; },
+    };
+  }
+
+  return {
+    APP_KEY, CONFIG, CAB_CSV, CAB_RESUMEN, FORMATOS, ZONA,
+    fechaHora, fecha, sello, limpiarCodigo, esCodigoPrecio, elegirCodigo, ordenNatural,
+    validarNombre, unirRuta, nombreDeRuta, nombreCSV, nombreResumen, nombreFoto, conSufijo, esResumen,
+    esCSVInventario, normalizarNombreCSV, idiomaPorId, destinoEstanteria, destinosFijos,
+    lineaCSV, modificarCSV, analizarCSV, construirResumen, analizarResumen, filasResumen, codificar, decodificar,
+    argDropbox, hashDropbox, uriRedireccion, ErrorDropbox, mensajeError,
+    crearAuth, crearDropbox, listarEstanterias, listarCSV, crearComprobadorCarpetas,
+    escribirConReintento, regenerarResumen, contarLineas, vueloLlego, crearColaLecturas, crearColaFotos, crearFiltroRepeticion,
+  };
 })();
+</script>
+
+<script type="module">
+/* =====================================================================
+   INTERFAZ
+   ===================================================================== */
+const N = globalThis.InvNucleo;
+const URL_LECTOR = 'https://fastly.jsdelivr.net/npm/barcode-detector@3.2.4/dist/es/ponyfill.min.js';
+const $ = id => document.getElementById(id);
+const ls = window.localStorage;
+const KSEL = 'invscan.sel', KRAIZ = 'invscan.raiz';
+
+const sel = (() => { try { return JSON.parse(ls.getItem(KSEL)) || {}; } catch (e) { return {}; } })();
+const guardarSel = () => ls.setItem(KSEL, JSON.stringify(sel));
+const redirectUri = N.uriRedireccion(location);
+const faltaClave = !N.APP_KEY || N.APP_KEY.startsWith('PEGAR_');
+
+/* ---------- Dropbox y colas ---------- */
+const fetchVentana = (u, o) => window.fetch(u, o);
+const auth = N.crearAuth({ fetch: fetchVentana, almacen: ls, appKey: N.APP_KEY, redirectUri });
+const dbx = N.crearDropbox({ fetch: fetchVentana, auth, pathRoot: ls.getItem(KRAIZ) || null });
+const carpetas = N.crearComprobadorCarpetas(dbx);
+
+const almacenFotos = (() => {
+  let dbp = null;
+  const abrir = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open('invscan', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('fotos', { keyPath: 'id' });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  }));
+  async function tx(modo, fn) {
+    const db = await abrir();
+    return new Promise((res, rej) => {
+      const t = db.transaction('fotos', modo);
+      const req = fn(t.objectStore('fotos'));
+      let out;
+      req.onsuccess = () => { out = req.result; };
+      t.oncomplete = () => res(out);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    });
+  }
+  return {
+    todas: () => tx('readonly', st => st.getAll()),
+    poner: f => tx('readwrite', st => st.put(f)),
+    quitar: id => tx('readwrite', st => st.delete(id)),
+  };
+})();
+
+const lecturas = N.crearColaLecturas({ dbx, almacen: ls, carpetas, alCambiar: () => { pintarLecturas(); pintarEstadoCola(); } });
+const fotos = N.crearColaFotos({ dbx, almacen: almacenFotos, carpetas, alCambiar: () => { pintarFotos(); pintarEstadoCola(); } });
+
+let listo = Promise.resolve();   // users/get_current_account (Path-Root) antes de leer o escribir
+let vista = 'vConectar';
+
+/* ---------- sonido, vibración, avisos ---------- */
+let audio = null;
+function asegurarAudio() {
+  try {
+    if (!audio) { const C = window.AudioContext || window.webkitAudioContext; if (C) audio = new C(); }
+    if (audio && audio.state === 'suspended') audio.resume();
+  } catch (e) { /* sin audio */ }
+}
+function tono(freq, dur, vol, retraso = 0) {
+  if (!audio) return;
+  try {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = 'square'; o.frequency.value = freq; g.gain.value = vol;
+    o.connect(g); g.connect(audio.destination);
+    const t = audio.currentTime + retraso;
+    o.start(t); o.stop(t + dur);
+  } catch (e) { /* nada */ }
+}
+// Chrome registra un error si se vibra antes de que el usuario toque la página: solo después del primer toque.
+function vibrar(p) {
+  try {
+    const tocada = !navigator.userActivation || navigator.userActivation.hasBeenActive;
+    if (navigator.vibrate && tocada) navigator.vibrate(p);
+  } catch (e) { /* nada */ }
+}
+function pitido() { tono(1760, 0.11, 0.25); vibrar(80); }
+function alarma() { vibrar([400, 150, 400, 150, 400]); [0, 0.35, 0.7].forEach(dt => tono(330, 0.25, 0.4, dt)); }
+
+let timerToast = null;
+function toast(texto, clase = '', ms = 1800) {
+  const t = $('toast');
+  t.textContent = texto; t.className = 'toast ' + clase;
+  clearTimeout(timerToast);
+  timerToast = setTimeout(() => t.classList.add('oculto'), ms);
+}
+function mostrarError(caja, texto) { const c = $(caja); if (!texto) { c.classList.add('oculto'); c.textContent = ''; return; } c.textContent = texto; c.classList.remove('oculto'); }
+
+/* ---------- sin conexión ---------- */
+let sinRed = false;
+function ponerSinRed(v) {
+  if (v === sinRed) return;
+  sinRed = v;
+  $('sinRed').classList.toggle('oculto', !v);
+  if (v) alarma();
+  else { toast('Conexión recuperada', 'ok'); sincronizarPronto(100); }
+}
+window.addEventListener('offline', () => ponerSinRed(true));
+window.addEventListener('online', () => { if (!faltaClave && auth.conectado()) sondear(); sincronizarPronto(100); });
+
+/* ---------- vistas ---------- */
+function idiomaActual() { return sel.idioma ? N.idiomaPorId(sel.idioma) : null; }
+function mostrar(id) {
+  vista = id;
+  for (const v of document.querySelectorAll('.vista')) v.classList.toggle('oculto', v.id !== id);
+  if (id !== 'vTrabajo') { apagarCamara(); cerrarHoja(); }
+  const enIdioma = ['vDestino', 'vArchivo', 'vTrabajo'].includes(id);
+  $('cambios').classList.toggle('oculto', !enIdioma);
+  $('btnCambiarDestino').classList.toggle('oculto', id === 'vDestino');
+  $('btnDesconectar').classList.toggle('oculto', id === 'vConectar');
+  pintarMigas();
+  window.scrollTo(0, 0);
+}
+function pintarMigas() {
+  const p = [];
+  const idi = idiomaActual();
+  if (idi && vista !== 'vIdioma' && vista !== 'vConectar') p.push(idi.nombre);
+  if (sel.destino && (vista === 'vArchivo' || vista === 'vTrabajo')) p.push(sel.destino.etiqueta);
+  if (sel.csv && vista === 'vTrabajo') p.push(sel.csv);
+  $('migas').textContent = p.join(' › ');
+}
+function boton(texto, clase, alPulsar) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'boton ' + (clase || ''); b.textContent = texto;
+  b.addEventListener('click', alPulsar);
+  return b;
+}
+
+function irConectar(error) {
+  mostrar('vConectar');
+  $('btnConectar').disabled = faltaClave;
+  mostrarError('errorConectar', faltaClave
+    ? 'Falta la App key de Dropbox en el código (constante APP_KEY). Sin ella no se puede conectar.'
+    : (error || ''));
+}
+function irIdioma() {
+  sel.idioma = null; sel.destino = null; sel.csv = null; guardarSel();
+  const cont = $('idiomas'); cont.textContent = '';
+  for (const idi of N.CONFIG.idiomas) cont.appendChild(boton(idi.nombre, 'grande', () => elegirIdioma(idi.id)));
+  mostrar('vIdioma');
+}
+function elegirIdioma(id) { sel.idioma = id; sel.destino = null; sel.csv = null; guardarSel(); irDestino(); }
+
+let pedidoEst = 0;
+async function irDestino() {
+  const idi = idiomaActual();
+  if (!idi) return irIdioma();
+  sel.destino = null; sel.csv = null; guardarSel();
+  mostrar('vDestino');
+  $('tituloDestino').textContent = `${idi.nombre}: elige el destino`;
+  const fijos = $('fijos'); fijos.textContent = '';
+  for (const d of N.destinosFijos(idi)) fijos.appendChild(boton(d.etiqueta, '', () => elegirDestino(d)));
+  fijos.classList.toggle('oculto', !fijos.children.length);
+  await cargarEstanterias();
+}
+async function cargarEstanterias() {
+  const idi = idiomaActual();
+  const yo = ++pedidoEst;
+  const rej = $('rejilla'); rej.textContent = '';
+  mostrarError('errorEst', '');
+  $('cargandoEst').classList.remove('oculto');
+  try {
+    await listo;
+    const nombres = await N.listarEstanterias(dbx, idi);
+    if (yo !== pedidoEst) return;
+    if (!nombres.length) mostrarError('errorEst', `La carpeta de estanterías de ${idi.nombre} está vacía:\n${idi.estanterias}`);
+    for (const n of nombres) rej.appendChild(boton(n, '', () => elegirDestino(N.destinoEstanteria(idi, n))));
+  } catch (e) {
+    if (yo !== pedidoEst) return;
+    tratarError(e);
+    mostrarError('errorEst', N.mensajeError(e));
+  } finally {
+    if (yo === pedidoEst) $('cargandoEst').classList.add('oculto');
+  }
+}
+function elegirDestino(d) { sel.destino = d; sel.csv = null; guardarSel(); irArchivo(); }
+
+let pedidoCsv = 0;
+async function irArchivo() {
+  const d = sel.destino;
+  if (!d) return irDestino();
+  mostrar('vArchivo');
+  $('tituloArchivo').textContent = d.tipo === 'fijo' ? `${d.etiqueta} (${d.nombre})` : d.nombre;
+  $('nombreNuevo').value = N.nombreCSV(d, new Date());
+  const yo = ++pedidoCsv;
+  const lista = $('listaCsv'); lista.textContent = '';
+  mostrarError('errorCsv', '');
+  $('cargandoCsv').classList.remove('oculto');
+  try {
+    await listo;
+    const csvs = await N.listarCSV(dbx, d);
+    if (yo !== pedidoCsv) return;
+    if (!csvs.length) { const p = document.createElement('p'); p.className = 'ayuda'; p.textContent = 'Todavía no hay ningún CSV en esta carpeta.'; lista.appendChild(p); }
+    for (const f of csvs) {
+      const b = boton('', '', () => elegirCSV(f.name));
+      const nombre = document.createElement('span'); nombre.textContent = f.name;
+      const cuando = document.createElement('small');
+      cuando.textContent = f.server_modified ? new Date(f.server_modified).toLocaleString('es-ES', { timeZone: N.ZONA, dateStyle: 'short', timeStyle: 'short' }) : '';
+      b.append(nombre, cuando);
+      lista.appendChild(b);
+    }
+  } catch (e) {
+    if (yo !== pedidoCsv) return;
+    tratarError(e);
+    mostrarError('errorCsv', N.mensajeError(e) + (e.tipo === 'red' ? '\nPuedes empezar un archivo nuevo: se enviará cuando vuelva la conexión.' : ''));
+  } finally {
+    if (yo === pedidoCsv) $('cargandoCsv').classList.add('oculto');
+  }
+}
+function elegirCSV(nombre) {
+  let n;
+  try { n = N.normalizarNombreCSV(nombre); } catch (e) { toast(e.message, 'mal', 3000); return; }
+  sel.csv = n; guardarSel(); irTrabajo();
+}
+
+function irTrabajo() {
+  if (!sel.destino) return irDestino();
+  if (!sel.csv) return irArchivo();
+  mostrar('vTrabajo');
+  cambiarModo(sel.modo || 'A');
+  pintarLecturas(); pintarFotos(); pintarEstadoCola();
+  mantenerPantalla();
+}
+
+$('btnCambiarIdioma').addEventListener('click', irIdioma);
+$('btnCambiarDestino').addEventListener('click', irDestino);
+$('btnReleerEst').addEventListener('click', cargarEstanterias);
+$('btnNuevo').addEventListener('click', () => elegirCSV($('nombreNuevo').value));
+$('btnConectar').addEventListener('click', async () => {
+  if (faltaClave) return;
+  try { location.href = await auth.urlAutorizacion(); } catch (e) { mostrarError('errorConectar', N.mensajeError(e)); }
+});
+$('btnDesconectar').addEventListener('click', () => {
+  const p = lecturas.pendientes() + fotos.pendientes();
+  if (!confirm('¿Desconectar este móvil de Dropbox?' + (p ? `\nHay ${p} cosas sin enviar: se quedan guardadas aquí y se enviarán al volver a conectar.` : ''))) return;
+  auth.desconectar();
+  irConectar();
+});
+
+/* ---------- modos ---------- */
+function cambiarModo(m) {
+  sel.modo = m; guardarSel();
+  for (const b of document.querySelectorAll('.modos button')) b.setAttribute('aria-selected', String(b.dataset.modo === m));
+  const codigos = m === 'A' || m === 'B';
+  $('panelCodigos').classList.toggle('oculto', !codigos);
+  $('btnRegistrar').classList.toggle('oculto', m !== 'A');
+  $('ayudaB').classList.toggle('oculto', m !== 'B');
+  $('panelFoto').classList.toggle('oculto', m !== 'C');
+  $('bloqueLecturas').classList.toggle('oculto', !codigos);
+  cerrarHoja(); filtroB.reiniciar(); visto = null; pintarVisto();
+  if (codigos) encenderCamara(); else apagarCamara();
+}
+for (const b of document.querySelectorAll('.modos button')) b.addEventListener('click', () => cambiarModo(b.dataset.modo));
+
+/* ---------- lector de códigos ---------- */
+let detector = null, errorLector = null;
+const promesaLector = (async () => {
+  try {
+    const { BarcodeDetector } = await import(URL_LECTOR);
+    const d = new BarcodeDetector({ formats: N.FORMATOS });
+    try { const c = document.createElement('canvas'); c.width = 16; c.height = 16; await d.detect(c); } catch (e) { /* solo precarga el WASM */ }
+    detector = d;
+  } catch (e) {
+    errorLector = e;
+    console.warn('No se pudo cargar el lector de códigos', e);
+  }
+})();
+
+let flujo = null, timerBucle = null, detectando = false, visto = null;
+const filtroB = N.crearFiltroRepeticion(1000);
+const video = $('video');
+function msgCamara(t) { const m = $('msgCamara'); m.textContent = t || ''; m.classList.toggle('oculto', !t); }
+async function encenderCamara() {
+  if (flujo || vista !== 'vTrabajo' || !(sel.modo === 'A' || sel.modo === 'B')) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msgCamara('Este navegador no deja usar la cámara aquí.'); return; }
+  msgCamara('Abriendo la cámara…');
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+    if (vista !== 'vTrabajo' || !(sel.modo === 'A' || sel.modo === 'B')) { s.getTracks().forEach(t => t.stop()); return; }
+    flujo = s;
+    video.srcObject = s;
+    await video.play().catch(() => {});
+    msgCamara(detector ? '' : (errorLector ? 'No se pudo cargar el lector de códigos. Comprueba la conexión y recarga la página.' : 'Cargando el lector de códigos…'));
+    programarBucle();
+  } catch (e) {
+    flujo = null;
+    msgCamara(e && e.name === 'NotAllowedError'
+      ? 'Sin permiso para usar la cámara. Actívalo en los ajustes del navegador y recarga la página.'
+      : 'No se pudo abrir la cámara: ' + ((e && (e.message || e.name)) || 'error'));
+  }
+}
+function apagarCamara() {
+  clearTimeout(timerBucle); timerBucle = null;
+  if (flujo) { flujo.getTracks().forEach(t => t.stop()); flujo = null; }
+  video.srcObject = null;
+}
+function programarBucle() { clearTimeout(timerBucle); timerBucle = setTimeout(bucle, 110); }
+async function bucle() {
+  if (!flujo) return;
+  if (!detector) {
+    msgCamara(errorLector ? 'No se pudo cargar el lector de códigos. Comprueba la conexión y recarga la página.' : 'Cargando el lector de códigos…');
+  } else if (!detectando && video.readyState >= 2 && video.videoWidth > 0) {
+    if (!$('msgCamara').classList.contains('oculto')) msgCamara('');
+    detectando = true;
+    try { alDetectar(await detector.detect(video)); } catch (e) { /* fotograma no válido */ } finally { detectando = false; }
+  }
+  pintarVisto();
+  programarBucle();
+}
+function vistoReciente() { return visto && performance.now() - visto.t < 700 ? visto : null; }
+function alDetectar(resultados) {
+  const t = performance.now();
+  const codigo = N.elegirCodigo(resultados);
+  if (!codigo) return;
+  visto = { codigo, t };
+  if (sel.modo === 'B') {
+    if (hojaAbierta()) { filtroB.tocar(codigo, t); return; }
+    if (filtroB.ver(codigo, t)) abrirHoja(codigo);
+  }
+}
+function pintarVisto() {
+  const v = vistoReciente(), caja = $('codigoVisto');
+  caja.classList.toggle('activo', !!v); caja.classList.toggle('vacio', !v);
+  caja.textContent = v ? v.codigo : 'Apunta a un código de barras';
+  $('btnRegistrar').disabled = !v;
+}
+$('btnRegistrar').addEventListener('click', () => {
+  const v = vistoReciente();
+  if (!v) { toast('No hay ningún código a la vista', 'mal'); return; }
+  registrar(v.codigo, 1);
+});
+
+function registrar(codigo, cantidad) {
+  if (!sel.destino || !sel.csv) return;
+  try {
+    lecturas.registrar({ destino: sel.destino, csv: sel.csv, codigo, cantidad });
+  } catch (e) { toast(e.message, 'mal', 3000); return; }
+  pitido();
+  toast(`✓ ${codigo} × ${cantidad}`, 'ok', 1200);
+  sincronizarPronto();
+}
+
+/* ---------- hoja de cantidad (modo B) ---------- */
+let codigoHoja = null;
+const hojaAbierta = () => codigoHoja !== null;
+function abrirHoja(codigo) {
+  codigoHoja = codigo;
+  $('hojaCodigo').textContent = codigo;
+  $('inputCantidad').value = '1';
+  $('capaHoja').classList.remove('oculto');
+  tono(990, 0.05, 0.12);
+}
+function cerrarHoja() {
+  if (codigoHoja !== null) filtroB.tocar(codigoHoja, performance.now());
+  codigoHoja = null;
+  $('capaHoja').classList.add('oculto');
+}
+function leerCantidad() { const n = parseInt($('inputCantidad').value, 10); return Number.isInteger(n) ? n : NaN; }
+$('btnMenos').addEventListener('click', () => { const n = leerCantidad(); $('inputCantidad').value = String(Math.max(1, (n || 1) - 1)); });
+$('btnMas').addEventListener('click', () => { const n = leerCantidad(); $('inputCantidad').value = String(Math.min(99999, (n || 0) + 1)); });
+$('inputCantidad').addEventListener('focus', e => e.target.select());
+$('btnCancelar').addEventListener('click', cerrarHoja);
+$('btnConfirmar').addEventListener('click', () => {
+  const n = leerCantidad();
+  if (!(n >= 1 && n <= 99999)) { toast('Cantidad no válida (de 1 a 99999)', 'mal'); return; }
+  const c = codigoHoja;
+  cerrarHoja();
+  registrar(c, n);
+});
+
+/* ---------- anular ---------- */
+$('btnAnular').addEventListener('click', () => {
+  if (!sel.destino || !sel.csv) return;
+  const ultima = lecturas.todas().reverse().find(l => l.carpeta === sel.destino.carpeta && l.csv === sel.csv
+    && !['anulada', 'borrar', 'borrando'].includes(l.estado) && !l.anular);
+  if (!ultima) { toast('No hay ninguna lectura que anular en este archivo'); return; }
+  if (!confirm(`¿Anular la última lectura?\n${ultima.codigo} × ${ultima.cantidad} (${ultima.fecha_hora.slice(11)})`)) return;
+  const l = lecturas.anularUltima(sel.destino.carpeta, sel.csv);
+  if (l) { toast(`Anulada: ${l.codigo}`, '', 1500); sincronizarPronto(300); }
+});
+
+/* ---------- pintar lecturas, fotos y estado ---------- */
+function estadoLectura(l) {
+  if (l.estado === 'enviada') return ['enviada', 'enviada'];
+  if (l.estado === 'anulada') return ['anulada', 'anulada'];
+  if (l.estado === 'borrar' || l.estado === 'borrando' || l.anular) return ['pendiente', 'anulando…'];
+  if (l.estado === 'enviando') return ['pendiente', 'enviando…'];
+  return ['pendiente', 'pendiente'];
+}
+function pintarLecturas() {
+  const ol = $('listaLecturas'); if (!ol) return;
+  ol.textContent = '';
+  const ult = lecturas.todas().slice(-20).reverse();
+  if (!ult.length) { const li = document.createElement('li'); li.className = 'vacia'; li.textContent = 'Todavía no hay lecturas en este móvil.'; ol.appendChild(li); return; }
+  for (const l of ult) {
+    const [clase, texto] = estadoLectura(l);
+    const li = document.createElement('li');
+    if (l.estado === 'anulada') li.className = 'anulada';
+    const hora = document.createElement('span'); hora.className = 'hora'; hora.textContent = l.fecha_hora.slice(11);
+    const cod = document.createElement('span'); cod.className = 'cod'; cod.textContent = `${l.codigo} × ${l.cantidad}`;
+    const chip = document.createElement('span'); chip.className = 'chip ' + clase; chip.textContent = texto;
+    const dest = document.createElement('span'); dest.className = 'dest'; dest.textContent = `${l.destino} · ${l.csv}`;
+    li.append(hora, cod, chip, dest);
+    ol.appendChild(li);
+  }
+}
+function pintarFotos() {
+  const cont = $('miniaturas'); if (!cont) return;
+  cont.textContent = '';
+  const ult = fotos.lista().slice(-12).reverse();
+  for (const f of ult) {
+    const d = document.createElement('div'); d.className = 'mini';
+    const img = document.createElement('img'); img.alt = ''; if (f.miniatura) img.src = f.miniatura;
+    const pie = document.createElement('div');
+    const nombre = document.createElement('span'); nombre.className = 'nombre'; nombre.textContent = (f.nombre || f.base + '.jpg');
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + (f.estado === 'enviada' ? 'enviada' : f.error ? 'error' : 'pendiente');
+    chip.textContent = f.estado === 'enviada' ? 'enviada' : f.estado === 'enviando' ? 'enviando…' : 'pendiente';
+    if (f.error && f.estado !== 'enviada') chip.title = f.error;
+    pie.append(nombre, chip);
+    d.append(img, pie);
+    cont.appendChild(d);
+  }
+}
+const trabajoPendiente = () => lecturas.pendientes() + fotos.pendientes() + lecturas.resumenesPendientes();
+function pintarEstadoCola() {
+  const nl = lecturas.pendientes(), nf = fotos.pendientes(), nr = lecturas.resumenesPendientes(), c = $('estadoCola');
+  if (!c) return;
+  c.classList.toggle('pend', nl + nf + nr > 0);
+  c.textContent = nl + nf + nr
+    ? `Pendiente de enviar: ${nl} lectura(s) · ${nf} foto(s)` + (nr ? ` · ${nr} resumen(es)` : '')
+    : 'Todo enviado a Dropbox ✓';
+}
+
+/* ---------- modo C: fotos ---------- */
+async function reducirImagen(file, lado = 2000, calidad = 0.85) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('No se pudo leer la foto')); i.src = url; });
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const k = Math.min(1, lado / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error('No se pudo convertir la foto a JPEG'))), 'image/jpeg', calidad));
+    const km = 200 / Math.max(c.width, c.height);
+    const m = document.createElement('canvas');
+    m.width = Math.max(1, Math.round(c.width * km)); m.height = Math.max(1, Math.round(c.height * km));
+    m.getContext('2d').drawImage(c, 0, 0, m.width, m.height);
+    const datos = blob.arrayBuffer ? await blob.arrayBuffer() : await new Response(blob).arrayBuffer();
+    return { datos, miniatura: m.toDataURL('image/jpeg', 0.7) };
+  } finally { URL.revokeObjectURL(url); }
+}
+$('inputFoto').addEventListener('change', async () => {
+  const input = $('inputFoto');
+  const file = input.files && input.files[0];
+  input.value = '';
+  const destino = sel.destino; // el de cuando se hizo la foto, aunque luego se cambie
+  if (!file || !destino) return;
+  toast('Preparando la foto…', '', 4000);
+  try {
+    const { datos, miniatura } = await reducirImagen(file);
+    await fotos.añadir(destino, datos, miniatura);
+    pitido();
+    toast('Foto guardada. Se envía a Dropbox…', 'ok');
+    sincronizarPronto(200);
+  } catch (e) {
+    toast('Error con la foto: ' + (e.message || e), 'mal', 4000);
+  }
+});
+
+/* ---------- sincronización ---------- */
+let sincronizando = false, otraVez = false, timerSync = null;
+function sincronizarPronto(ms = 1200) { clearTimeout(timerSync); timerSync = setTimeout(sincronizarTodo, ms); }
+function tratarError(e) {
+  if (!e) return;
+  if (e.tipo === 'red') ponerSinRed(true);
+  if (e.tipo === 'auth' && !auth.conectado()) {
+    mostrarError('errorCola', N.mensajeError(e));
+    const c = $('errorCola');
+    c.appendChild(boton('Conectar de nuevo con Dropbox', 'primario', async () => { location.href = await auth.urlAutorizacion(); }));
+  }
+}
+async function sincronizarTodo() {
+  if (faltaClave || !auth.conectado()) return;
+  if (sincronizando) { otraVez = true; return; }
+  sincronizando = true;
+  try {
+    do {
+      otraVez = false;
+      try { await listo; } catch (e) { /* se reintenta abajo */ }
+      const r1 = await lecturas.sincronizar();
+      const r2 = await fotos.sincronizar();
+      const errores = [...r1.errores, ...r2.errores];
+      const red = errores.find(e => e.tipo === 'red');
+      if (red) { ponerSinRed(true); break; }
+      // Solo se quita el aviso si Dropbox ha contestado (subida hecha o error que no es de red).
+      if (r1.subidas || r2.enviadas || errores.length) ponerSinRed(false);
+      const otro = errores[errores.length - 1];
+      if (otro) { mostrarError('errorCola', N.mensajeError(otro)); tratarError(otro); }
+      else mostrarError('errorCola', '');
+    } while (otraVez);
+  } catch (e) {
+    tratarError(e);
+  } finally {
+    sincronizando = false;
+    pintarEstadoCola();
+  }
+}
+async function sondear() {
+  try { await dbx.cuenta(); ponerSinRed(false); } catch (e) { if (e.tipo === 'red') ponerSinRed(true); }
+}
+setInterval(() => {
+  if (faltaClave || !auth.conectado()) return;
+  const p = trabajoPendiente();
+  if (p) sincronizarTodo();
+  else if (sinRed) sondear();
+}, 15000);
+
+window.addEventListener('beforeunload', e => {
+  if (trabajoPendiente() > 0) { e.preventDefault(); e.returnValue = ''; return ''; }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { apagarCamara(); if (trabajoPendiente()) sincronizarTodo(); }
+  else if (vista === 'vTrabajo') { encenderCamara(); mantenerPantalla(); sincronizarPronto(300); }
+});
+document.addEventListener('pointerdown', asegurarAudio, { capture: true });
+
+let bloqueoPantalla = null;
+async function mantenerPantalla() {
+  try {
+    if ('wakeLock' in navigator && !bloqueoPantalla && !document.hidden) {
+      bloqueoPantalla = await navigator.wakeLock.request('screen');
+      bloqueoPantalla.addEventListener('release', () => { bloqueoPantalla = null; });
+    }
+  } catch (e) { /* no disponible */ }
+}
+
+/* ---------- arranque ---------- */
+async function arrancar() {
+  if (!navigator.onLine) ponerSinRed(true);
+  if (faltaClave) { irConectar(); return; }
+  const q = new URLSearchParams(location.search);
+  if (q.has('code') || q.has('error')) {
+    let fallo = '';
+    try { await auth.completar(q); } catch (e) { fallo = N.mensajeError(e); }
+    history.replaceState(null, '', location.pathname);
+    if (fallo) { irConectar(fallo); return; }
+  }
+  if (!auth.conectado()) { irConectar(); return; }
+  listo = dbx.prepararRaiz()
+    .then(r => { if (r) ls.setItem(KRAIZ, r); else ls.removeItem(KRAIZ); })
+    .catch(e => { tratarError(e); });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* nada */ }
+  try { await fotos.cargar(); } catch (e) { toast('No se pudieron leer las fotos guardadas en el móvil', 'mal', 3000); }
+  if (sel.idioma && sel.destino && sel.csv) irTrabajo();
+  else if (sel.idioma && sel.destino) irArchivo();
+  else if (sel.idioma) irDestino();
+  else irIdioma();
+  sincronizarPronto(500);
+}
+arrancar();
 </script>
 </body>
 </html>
