@@ -113,18 +113,21 @@ footer{max-width:720px;margin:24px auto 30px;padding:0 12px;display:flex;justify
 <main>
   <section id="vConectar" class="vista">
     <h2>¿Dónde se guarda el inventario?</h2>
-    <p>Este móvil guarda el inventario en el Dropbox de la tienda o en Google Drive (cuenta libreria@aprendechinohoy.com).
-      Se elige una vez; se puede cambiar abajo, en «Cambiar de servicio».</p>
-    <button id="btnConectar" class="boton primario grande" type="button">Conectar con Dropbox</button>
+    <p><strong>Buzón de la tienda</strong>: sin cuenta ni contraseña; el PC de la tienda lo pasa después a Dropbox.
+      Para activarlo, abre en este móvil el enlace o el QR de la tienda (solo la primera vez).</p>
+    <button id="btnConectarBuzon" class="boton primario grande" type="button">Buzón de la tienda (sin cuenta)</button>
+    <p class="ayuda espacio">O, con cuenta: Dropbox de la tienda o Google Drive (libreria@aprendechinohoy.com). Se puede
+      cambiar abajo, en «Cambiar de servicio».</p>
+    <button id="btnConectar" class="boton grande" type="button">Conectar con Dropbox</button>
     <button id="btnConectarGoogle" class="boton grande espacio" type="button">Conectar con Google Drive</button>
     <div id="errorConectar" class="error oculto"></div>
   </section>
 
   <section id="vMovil" class="vista oculto">
     <h2>Nombre de este móvil</h2>
-    <p>En Google Drive cada móvil guarda su propio archivo (y el resumen suma los de todos). Pon un nombre corto para
-      este móvil: letras sin tilde, números y guiones, por ejemplo <strong>Hinako-iPhone</strong>. La app le añade 4
-      caracteres al azar (p. ej. Hinako-iPhone-k3f9) para que dos móviles nunca se confundan.</p>
+    <p>Cada lectura lleva el nombre del móvil que la hizo (en Google Drive, además, cada móvil guarda su propio archivo).
+      Pon un nombre corto: letras sin tilde, números y guiones, por ejemplo <strong>Hinako-iPhone</strong>. La app le
+      añade 4 caracteres al azar (p. ej. Hinako-iPhone-k3f9) para que dos móviles nunca se confundan.</p>
     <input id="nombreMovil" class="campo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="25">
     <button id="btnGuardarMovil" class="boton primario grande" type="button">Guardar</button>
   </section>
@@ -217,7 +220,7 @@ footer{max-width:720px;margin:24px auto 30px;padding:0 12px;display:flex;justify
 <footer>
   <span><span id="servicioPie"></span> <button id="btnCambiarServicio" class="enlace oculto" type="button">Cambiar de servicio</button></span>
   <button id="btnDesconectar" class="enlace oculto" type="button">Desconectar este móvil</button>
-  <span>inventario-scan v1.1</span>
+  <span>inventario-scan v2.0</span>
 </footer>
 
 <script id="nucleo">
@@ -235,6 +238,9 @@ footer{max-width:720px;margin:24px auto 30px;padding:0 12px;display:flex;justify
 const APP_KEY = 'c8es4ky1qcggdit';
 const GOOGLE_CLIENT_ID = '275323010728-l1v5a9dpife6fmrgcjatnvm4es899j6e.apps.googleusercontent.com';
 const GOOGLE_CUENTA = 'libreria@aprendechinohoy.com';
+// Buzón de la tienda (v2.0): aplicación web de Apps Script de libreria@. La clave NO va aquí: llega con el enlace o QR
+// de la tienda (…/inventario-scan/#buzon=<clave>) y se guarda en cada móvil.
+const BUZON_URL = 'https://script.google.com/macros/s/AKfycbyo_oHvfLLFO95BJnSeqr-1N1-sOd_wWRjX8kv5qpj7WQ3nrk5b-hDqzs22Mku27GFI/exec';
 const CONFIG = {
   idiomas: [
     {
@@ -465,19 +471,21 @@ globalThis.InvNucleo = (function () {
   class ErrorDropbox extends Error {
     constructor(mensaje, datos) { super(mensaje); this.name = 'ErrorDropbox'; Object.assign(this, datos || {}); }
   }
+  function nombreServicioError(e) { return e.servicio === 'drive' ? 'Google Drive' : e.servicio === 'buzon' ? 'El buzón' : 'Dropbox'; }
   function mensajeError(e) {
     if (!e) return '';
     switch (e.tipo) {
-      case 'red': return (e.servicio === 'drive' ? 'Sin conexión con Google Drive.' : 'Sin conexión con Dropbox.') + ' Se reintentará solo.';
+      case 'red': return (e.servicio === 'drive' ? 'Sin conexión con Google Drive.' : e.servicio === 'buzon' ? 'Sin conexión con el buzón.' : 'Sin conexión con Dropbox.') + ' Se reintentará solo.';
       case 'permiso': return 'Google Drive no deja hacerlo (' + (e.resumen || e.estado) + '). ¿Has entrado con ' + GOOGLE_CUENTA + '?';
       case 'no_existe': return e.paraUsuario || ('No existe en Dropbox: ' + (e.ruta || ''));
       case 'auth':
         if (e.servicio === 'drive') return 'El permiso de Google ha caducado (dura ~1 hora). Pulsa «Reconectar Google»: lo pendiente se enviará entonces.';
+        if (e.servicio === 'buzon') return 'La clave del buzón no vale (o ha cambiado): vuelve a abrir en este móvil el enlace o el QR de la tienda. Lo registrado se queda guardado.';
         if (/missing_scope/.test(e.resumen || '')) return 'A la app de Dropbox le falta un permiso (' + e.resumen + '). Revisa los permisos en dropbox.com/developers y vuelve a conectar.';
         return 'La conexión con Dropbox ha caducado o se ha revocado. Vuelve a conectar este móvil.';
       case 'conflicto_repetido': return 'Muchos móviles escribiendo a la vez en el mismo archivo. Se reintentará.';
-      case 'limite': return 'Dropbox pide esperar un poco (demasiadas peticiones). Se reintentará.';
-      case 'servidor': return 'Dropbox no responde bien ahora mismo. Se reintentará.';
+      case 'limite': return nombreServicioError(e) + ' pide esperar un poco (demasiadas peticiones). Se reintentará.';
+      case 'servidor': return nombreServicioError(e) + ' no responde bien ahora mismo. Se reintentará.';
       default: return e.message || String(e);
     }
   }
@@ -921,7 +929,7 @@ globalThis.InvNucleo = (function () {
       const d = ahora();
       const base = `${destino.nombre}_${sello(d)}`;
       rem.validarFoto(destino.carpeta, base);
-      const f = { id: uid(), servicio, carpeta: destino.carpeta, destino: destino.nombre, base, nombre: null, datos, tamaño: tamañoDe(datos), miniatura: miniatura || null, estado: 'pendiente', error: null, t: d.getTime() };
+      const f = { id: uid(), servicio, idioma: destino.idioma, carpeta: destino.carpeta, destino: destino.nombre, base, nombre: null, datos, tamaño: tamañoDe(datos), miniatura: miniatura || null, estado: 'pendiente', error: null, t: d.getTime() };
       await almacen.poner(f);
       fotos.push(f);
       avisar();
@@ -1277,6 +1285,183 @@ globalThis.InvNucleo = (function () {
     };
   }
 
+  /* ---------- Buzón de la tienda (v2.0): sin iniciar sesión ----------
+     Los móviles mandan lecturas, anulaciones y fotos al buzón (Apps Script de libreria@) con la clave de la tienda.
+     El buzón guarda cada id una sola vez: reenviar es seguro, no hace falta contar líneas. El PC lo pasa a Dropbox. */
+  const RAIZ_BUZON = '/05_Hinako/99_Otros/04_Inventario/'; // lo único que acepta el buzón (Code.js)
+  const LIMITE_FOTO_BUZON = 12 * 1024 * 1024; // base64, como en Code.js (≈ 9 MB de foto)
+  function aBase64(datos) {
+    const u8 = aBytes(datos);
+    let s = '';
+    for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  function crearBuzon({ fetch, url, clave, esperar = esperarMs }) {
+    async function pedir(accion, datos, opciones) {
+      const escritura = !!(opciones && opciones.escritura);
+      const c = typeof clave === 'function' ? clave() : clave;
+      const u = typeof url === 'function' ? url() : url;
+      if (!u || /^PEGAR_/.test(u)) throw new ErrorDropbox('El buzón no está configurado en la página', { tipo: 'otro', servicio: 'buzon' });
+      if (!c) throw new ErrorDropbox('Falta la clave del buzón', { tipo: 'auth', servicio: 'buzon' });
+      for (let intento = 0; ; intento++) {
+        let res;
+        try {
+          // text/plain: sin petición previa de CORS (Apps Script no la contesta)
+          res = await fetch(u, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ accion, clave: c }, datos || {})) });
+        } catch (e) {
+          throw new ErrorDropbox('Sin conexión con el buzón', { tipo: 'red', causa: e, incierto: escritura, servicio: 'buzon' });
+        }
+        if ((res.status === 429 || res.status >= 500) && intento < 3) { await esperar(500 * Math.pow(2, intento)); continue; }
+        if (!res.ok) {
+          throw new ErrorDropbox(`Buzón ${res.status}`, { tipo: res.status >= 500 ? 'servidor' : res.status === 429 ? 'limite' : 'otro', estado: res.status, incierto: escritura, servicio: 'buzon' });
+        }
+        let r;
+        try { r = await res.json(); } catch (e) {
+          throw new ErrorDropbox('Respuesta incompleta del buzón', { tipo: 'red', causa: e, incierto: escritura, servicio: 'buzon' });
+        }
+        if (!r || !r.ok) {
+          const motivo = (r && r.error) || 'desconocido';
+          throw new ErrorDropbox('El buzón dijo: ' + motivo, { tipo: motivo === 'clave' ? 'auth' : 'otro', resumen: motivo, id: r && r.id, servicio: 'buzon' });
+        }
+        return r;
+      }
+    }
+    return { pedir };
+  }
+  // Cola de lecturas del buzón: misma interfaz que crearColaLecturas.
+  function crearColaBuzon({ buzon, almacen, clave: K = 'invscan.cola.buzon', movil = () => '', ahora = () => new Date(), alCambiar = () => {}, maxFinales = 300, lote = 200 }) {
+    let lista = [];
+    try { lista = (JSON.parse(almacen.getItem(K)) || {}).lista || []; } catch (e) { lista = []; }
+    for (const l of lista) if (l.estado === 'enviando') { l.estado = l.anular ? 'borrar' : 'pendiente'; delete l.anular; }
+    const clave = l => l.carpeta + '|' + l.csv;
+    function guardar() {
+      almacen.setItem(K, JSON.stringify({ lista }));
+      try { alCambiar(); } catch (e) { /* nada */ }
+    }
+    function recortar() {
+      const finales = lista.filter(l => l.estado === 'enviada' || l.estado === 'anulada' || l.estado === 'rechazada');
+      if (finales.length > maxFinales) { const q = new Set(finales.slice(0, finales.length - maxFinales)); lista = lista.filter(l => !q.has(l)); }
+    }
+    function registrar({ destino, csv, codigo, cantidad }) {
+      const c = limpiarCodigo(codigo);
+      if (!c) throw new Error('Código vacío');
+      if (esCodigoPrecio(c)) throw new Error('Es el código del precio (19…): no se registra');
+      if (c.length > 64) throw new Error('Código demasiado largo (máx. 64 caracteres)');
+      const n = Number(cantidad);
+      if (!Number.isInteger(n) || n < 1 || n > 99999) throw new Error('Cantidad no válida');
+      validarNombre(csv);
+      if (!esCSVInventario(csv) || csv.length > 120) throw new Error('Archivo no válido: ' + csv);
+      unirRuta(destino.carpeta, csv);
+      if (!String(destino.carpeta).startsWith(RAIZ_BUZON) || !destino.nombre || String(destino.nombre).length > 80) throw new Error('Destino no válido para el buzón: ' + destino.carpeta);
+      const l = { id: uid(), idioma: destino.idioma, carpeta: destino.carpeta, destino: destino.nombre, csv, fecha_hora: fechaHora(ahora()), codigo: c, cantidad: n, estado: 'pendiente' };
+      lista.push(l); recortar(); guardar();
+      return l;
+    }
+    function anularUltima(carpeta, csv) {
+      for (let i = lista.length - 1; i >= 0; i--) {
+        const l = lista[i];
+        if (l.carpeta !== carpeta || l.csv !== csv) continue;
+        if (l.estado === 'anulada' || l.estado === 'rechazada' || l.estado === 'borrar' || l.estado === 'borrando' || l.anular) continue;
+        // Si ya se intentó mandar (respuesta perdida), puede estar en el buzón: se manda la anulación igualmente.
+        if (l.estado === 'pendiente') l.estado = l.intentada ? 'borrar' : 'anulada';
+        else if (l.estado === 'enviando') l.anular = true;
+        else if (l.estado === 'enviada') l.estado = 'borrar';
+        guardar();
+        return l;
+      }
+      return null;
+    }
+    const aEnvio = l => ({ id: l.id, movil: movil() || '', idioma: l.idioma, destino: l.destino, carpeta: l.carpeta, archivo: l.csv, fecha_hora: l.fecha_hora, codigo: l.codigo, cantidad: l.cantidad });
+    let enMarcha = null;
+    async function hacer() {
+      const errores = []; let subidas = 0;
+      for (let vuelta = 0; vuelta < 1000; vuelta++) {
+        const trozo = lista.filter(l => l.estado === 'pendiente').slice(0, lote);
+        if (!trozo.length) break;
+        trozo.forEach(l => { l.estado = 'enviando'; l.intentada = true; });
+        guardar();
+        try {
+          await buzon.pedir('lecturas', { lecturas: trozo.map(aEnvio) }, { escritura: true });
+          trozo.forEach(l => { l.estado = l.anular ? 'borrar' : 'enviada'; delete l.anular; });
+          subidas++;
+          guardar();
+        } catch (e) {
+          // Puede que llegara: si se anuló mientras tanto, se manda la anulación (el buzón la guarda igual).
+          const mala = e && e.resumen === 'lectura_no_valida' ? trozo.find(l => l.id === e.id) : null;
+          trozo.forEach(l => { l.estado = l.anular ? 'borrar' : 'pendiente'; delete l.anular; });
+          if (mala) {
+            mala.estado = 'rechazada';
+            guardar();
+            errores.push(new ErrorDropbox('Rechazada', { tipo: 'otro', servicio: 'buzon',
+              message: `El buzón no acepta la lectura ${mala.codigo} × ${mala.cantidad}: se aparta y se sigue con las demás.` }));
+            continue;
+          }
+          guardar();
+          errores.push(e);
+          return { subidas, errores };
+        }
+      }
+      const bor = lista.filter(l => l.estado === 'borrar');
+      for (let i = 0; i < bor.length; i += lote) {
+        const trozo = bor.slice(i, i + lote);
+        try {
+          await buzon.pedir('anular', { ids: trozo.map(l => l.id) }, { escritura: true });
+          trozo.forEach(l => { l.estado = 'anulada'; });
+          subidas++;
+        } catch (e) { errores.push(e); }
+        guardar();
+        if (errores.length) break;
+      }
+      return { subidas, errores };
+    }
+    function sincronizar() {
+      if (!enMarcha) enMarcha = hacer().finally(() => { enMarcha = null; });
+      return enMarcha;
+    }
+    const pendientes = () => lista.filter(l => ['pendiente', 'enviando', 'borrar', 'borrando'].includes(l.estado)).length;
+    return { registrar, anularUltima, sincronizar, pendientes, resumenesPendientes: () => 0, todas: () => lista.slice(), clave,
+      rechazadas: () => lista.filter(l => l.estado === 'rechazada').length };
+  }
+  // Fotos y destinos del buzón (las rutas son las de Dropbox: el PC escribe ahí).
+  function remBuzon({ buzon, movil = () => '' }) {
+    let ultimaLista = null;
+    async function destinos() {
+      const r = await buzon.pedir('destinos', {});
+      ultimaLista = (r.destinos && r.destinos.destinos) || [];
+      return ultimaLista;
+    }
+    return {
+      tipo: 'buzon',
+      validarFoto: (carpeta, base) => { unirRuta(carpeta, conSufijo(base, 1)); },
+      comprobarCarpeta: async () => {},
+      async subirFoto(f) {
+        const datos = aBase64(f.datos);
+        if (datos.length > LIMITE_FOTO_BUZON) {
+          throw new ErrorDropbox('Foto demasiado grande', { tipo: 'otro', servicio: 'buzon',
+            message: `La foto ocupa ${Math.round(tamañoDe(f.datos) / 1048576)} MB y el buzón admite hasta 9 MB: hazla de nuevo.` });
+        }
+        await buzon.pedir('foto', { foto: { id: f.id, movil: movil() || '', idioma: f.idioma, destino: f.destino, carpeta: f.carpeta, base: f.base, datos } }, { escritura: true });
+        return conSufijo(f.base, 1);
+      },
+      async listarEstanterias(idioma) {
+        const lista = (await destinos()).filter(d => d.idioma === idioma.id && d.tipo === 'estanteria');
+        if (!lista.length) {
+          throw new ErrorDropbox('Sin estanterías publicadas', { tipo: 'no_existe', servicio: 'buzon',
+            paraUsuario: `El PC todavía no ha publicado las estanterías de ${idioma.nombre} en el buzón (inventario_buzon.bat en el PC de la tienda).` });
+        }
+        return lista.map(d => ({ idioma: idioma.id, tipo: 'estanteria', etiqueta: d.nombre, nombre: d.nombre, carpeta: d.carpeta, servicio: 'buzon' }))
+          .filter(d => { try { validarNombre(d.nombre); unirRuta(d.carpeta, 'x.csv'); return true; } catch (e) { return false; } })
+          .sort((a, b) => ordenNatural(a.nombre, b.nombre));
+      },
+      destinosFijos: idioma => destinosFijos(idioma).map(d => Object.assign({}, d, { servicio: 'buzon' })),
+      async listarCSV(destino) {
+        const r = await buzon.pedir('archivos', { carpeta: destino.carpeta });
+        return (r.archivos || []).filter(n => { try { return esCSVInventario(validarNombre(n)); } catch (e) { return false; } })
+          .map(n => ({ name: n, server_modified: '' }));
+      },
+    };
+  }
+
   /* ---------- modo B: no volver a preguntar el mismo código hasta que lleve ≥ ms fuera ---------- */
   function crearFiltroRepeticion(ms = 1000) {
     let bloqueado = null, ultimaVez = -Infinity;
@@ -1293,7 +1478,7 @@ globalThis.InvNucleo = (function () {
   }
 
   return {
-    APP_KEY, GOOGLE_CLIENT_ID, GOOGLE_CUENTA, ALCANCE_DRIVE, CONFIG, CAB_CSV, CAB_RESUMEN, FORMATOS, ZONA,
+    APP_KEY, GOOGLE_CLIENT_ID, GOOGLE_CUENTA, ALCANCE_DRIVE, BUZON_URL, CONFIG, CAB_CSV, CAB_RESUMEN, FORMATOS, ZONA,
     fechaHora, fecha, sello, limpiarCodigo, esCodigoPrecio, elegirCodigo, ordenNatural,
     validarNombre, unirRuta, nombreDeRuta, nombreCSV, nombreResumen, nombreFoto, conSufijo, esResumen,
     esCSVInventario, normalizarNombreCSV, idiomaPorId, destinoEstanteria, destinosFijos,
@@ -1301,7 +1486,7 @@ globalThis.InvNucleo = (function () {
     argDropbox, hashDropbox, uriRedireccion, ErrorDropbox, mensajeError,
     crearAuth, crearDropbox, listarEstanterias, listarCSV, crearComprobadorCarpetas,
     escribirConReintento, regenerarResumen, contarLineas, vueloLlego, crearColaLecturas, crearColaFotos, crearFiltroRepeticion,
-    remDropbox, remDrive, crearDrive, crearAuthGoogle, validarMovil, crearNombreMovil, nombreCSVDrive, baseDeCSVDrive, sha256Hex, llegadasDeVuelo,
+    remDropbox, remDrive, crearDrive, crearAuthGoogle, crearBuzon, crearColaBuzon, remBuzon, aBase64, validarMovil, crearNombreMovil, nombreCSVDrive, baseDeCSVDrive, sha256Hex, llegadasDeVuelo,
   };
 })();
 </script>
@@ -1315,18 +1500,34 @@ const URL_LECTOR = 'https://fastly.jsdelivr.net/npm/barcode-detector@3.2.4/dist/
 const $ = id => document.getElementById(id);
 const ls = window.localStorage;
 const KRAIZ = 'invscan.raiz', KSERVICIO = 'invscan.servicio', KMOVIL = 'invscan.movil';
-// Servicio de este móvil: 'dropbox' o 'drive'. Quien ya usaba Dropbox antes de la v1.1 sigue en Dropbox.
+const KBUZON = 'invscan.buzon.clave';
+// Enlace o QR de la tienda: …/#buzon=<clave>. Se guarda en el móvil y se quita de la barra de direcciones.
+const RE_ENLACE_BUZON = /(?:^#|&)buzon=([A-Za-z0-9_-]{24,128})(?:&|$)/;
+(() => {
+  const m = RE_ENLACE_BUZON.exec(location.hash || '');
+  if (m) {
+    ls.setItem(KBUZON, m[1]);
+    ls.setItem(KSERVICIO, 'buzon');
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+})();
+// Si la página ya estaba abierta, abrir el enlace solo cambia el «#»: se recarga para leerlo.
+window.addEventListener('hashchange', () => { if (RE_ENLACE_BUZON.test(location.hash || '')) location.reload(); });
+// Servicio de este móvil: 'buzon', 'dropbox' o 'drive'. Quien ya usaba Dropbox antes de la v1.1 sigue en Dropbox.
 const valorServicio = ls.getItem(KSERVICIO);
-const SERVICIO = valorServicio === 'dropbox' || valorServicio === 'drive' ? valorServicio
+const SERVICIO = ['dropbox', 'drive', 'buzon'].includes(valorServicio) ? valorServicio
   : (valorServicio === null && ls.getItem('invscan.auth') ? 'dropbox' : null);
 const esDrive = SERVICIO === 'drive';
-const KSEL = esDrive ? 'invscan.sel.drive' : 'invscan.sel';
+const esBuzon = SERVICIO === 'buzon';
+const KSEL = esDrive ? 'invscan.sel.drive' : esBuzon ? 'invscan.sel.buzon' : 'invscan.sel';
+const NOMBRE_SERVICIO = esDrive ? 'Google Drive' : esBuzon ? 'el buzón de la tienda' : 'Dropbox';
 
 const sel = (() => { try { return JSON.parse(ls.getItem(KSEL)) || {}; } catch (e) { return {}; } })();
 const guardarSel = () => ls.setItem(KSEL, JSON.stringify(sel));
 const redirectUri = N.uriRedireccion(location);
 const faltaClave = !N.APP_KEY || N.APP_KEY.startsWith('PEGAR_');
 const faltaClaveGoogle = !N.GOOGLE_CLIENT_ID || N.GOOGLE_CLIENT_ID.startsWith('PEGAR_');
+const faltaBuzon = !N.BUZON_URL || N.BUZON_URL.startsWith('PEGAR_');
 
 /* ---------- Dropbox y colas ---------- */
 const fetchVentana = (u, o) => window.fetch(u, o);
@@ -1336,8 +1537,11 @@ const authG = N.crearAuthGoogle({ almacen: ls, pedir: pedirTokenGoogle });
 const drive = N.crearDrive({ fetch: fetchVentana, auth: authG });
 const carpetas = esDrive ? N.crearComprobadorCarpetas(drive, { servicio: 'Google Drive' }) : N.crearComprobadorCarpetas(dbx);
 const movilActual = () => ls.getItem(KMOVIL) || '';
-const rem = esDrive ? N.remDrive({ drive, carpetas, movil: movilActual }) : N.remDropbox(dbx, carpetas);
-const conectadoServicio = () => (esDrive ? authG.conectado() : (!faltaClave && auth.conectado()));
+const buzon = N.crearBuzon({ fetch: fetchVentana, url: N.BUZON_URL, clave: () => ls.getItem(KBUZON) });
+const rem = esBuzon ? N.remBuzon({ buzon, movil: movilActual })
+  : esDrive ? N.remDrive({ drive, carpetas, movil: movilActual, almacen: ls }) : N.remDropbox(dbx, carpetas);
+const conectadoServicio = () => (esBuzon ? (!faltaBuzon && !!ls.getItem(KBUZON))
+  : esDrive ? authG.conectado() : (!faltaClave && auth.conectado()));
 
 const almacenFotos = (() => {
   let dbp = null;
@@ -1366,8 +1570,11 @@ const almacenFotos = (() => {
   };
 })();
 
-const lecturas = N.crearColaLecturas({ rem, almacen: ls, clave: esDrive ? 'invscan.cola.drive' : 'invscan.cola', alCambiar: () => { pintarLecturas(); pintarEstadoCola(); } });
-const fotos = N.crearColaFotos({ rem, almacen: almacenFotos, servicio: esDrive ? 'drive' : 'dropbox', alCambiar: () => { pintarFotos(); pintarEstadoCola(); } });
+const alCambiarLecturas = () => { pintarLecturas(); pintarEstadoCola(); };
+const lecturas = esBuzon
+  ? N.crearColaBuzon({ buzon, almacen: ls, movil: movilActual, alCambiar: alCambiarLecturas })
+  : N.crearColaLecturas({ rem, almacen: ls, clave: esDrive ? 'invscan.cola.drive' : 'invscan.cola', alCambiar: alCambiarLecturas });
+const fotos = N.crearColaFotos({ rem, almacen: almacenFotos, servicio: SERVICIO || 'dropbox', alCambiar: () => { pintarFotos(); pintarEstadoCola(); } });
 
 /* ---------- Google (Google Identity Services: permiso de ~1 h) ---------- */
 let clienteToken = null, esperaToken = null;
@@ -1421,10 +1628,10 @@ async function reconectarGoogle() {
 function pintarServicio() {
   const pie = !SERVICIO ? '' : esDrive
     ? `Google Drive · ${movilActual() || 'sin nombre'}${authG.vigente() ? ' · permiso: ' + authG.minutos() + ' min' : ''}`
-    : 'Dropbox';
+    : esBuzon ? `Buzón de la tienda · ${movilActual() || 'sin nombre'}` : 'Dropbox';
   $('servicioPie').textContent = pie;
   const s = $('servicioActual');
-  s.textContent = esDrive ? 'Drive' : 'Dropbox';
+  s.textContent = esDrive ? 'Drive' : esBuzon ? 'Buzón' : 'Dropbox';
   s.classList.toggle('oculto', !SERVICIO || vista === 'vConectar');
 }
 
@@ -1514,8 +1721,10 @@ function irConectar(error) {
   mostrar('vConectar');
   $('btnConectar').disabled = faltaClave;
   $('btnConectarGoogle').disabled = faltaClaveGoogle;
+  $('btnConectarBuzon').disabled = faltaBuzon;
   prepararGoogle();
   const avisos = [];
+  if (faltaBuzon) avisos.push('El buzón de la tienda todavía no está configurado en la página (BUZON_URL).');
   if (faltaClave) avisos.push('Falta la App key de Dropbox en el código (APP_KEY): Dropbox no se puede usar.');
   if (faltaClaveGoogle) avisos.push('Falta el ID de cliente de Google en el código (GOOGLE_CLIENT_ID): Google Drive todavía no se puede usar.');
   if (error) avisos.push(error);
@@ -1576,8 +1785,9 @@ async function irArchivo() {
   mostrar('vArchivo');
   $('tituloArchivo').textContent = d.tipo === 'fijo' ? `${d.etiqueta} (${d.nombre})` : d.nombre;
   $('nombreNuevo').value = N.nombreCSV(d, new Date());
-  $('notaDrive').classList.toggle('oculto', !esDrive);
+  $('notaDrive').classList.toggle('oculto', !esDrive && !esBuzon);
   if (esDrive) $('notaDrive').textContent = `En Google Drive este móvil escribe en «<nombre>_${movilActual()}.csv»; el resumen suma los archivos de todos los móviles.`;
+  if (esBuzon) $('notaDrive').textContent = 'Va al buzón de la tienda; el PC lo pasa a Dropbox como este archivo, con las lecturas de todos los móviles.';
   const yo = ++pedidoCsv;
   const lista = $('listaCsv'); lista.textContent = '';
   mostrarError('errorCsv', '');
@@ -1638,6 +1848,15 @@ $('btnConectarGoogle').addEventListener('click', async () => {
   } catch (e) { mostrarError('errorConectar', 'No se pudo conectar con Google Drive: ' + (e.message || e)); }
 });
 $('btnReconectarGoogle').addEventListener('click', reconectarGoogle);
+$('btnConectarBuzon').addEventListener('click', () => {
+  if (faltaBuzon) return;
+  if (!ls.getItem(KBUZON)) {
+    mostrarError('errorConectar', 'Para usar el buzón, abre en este móvil el enlace o el QR de la tienda (lleva la clave). Solo hace falta la primera vez.');
+    return;
+  }
+  ls.setItem(KSERVICIO, 'buzon');
+  location.reload();
+});
 $('btnGuardarMovil').addEventListener('click', () => {
   let m;
   try { m = N.crearNombreMovil($('nombreMovil').value); } catch (e) { toast(e.message, 'mal', 4000); return; }
@@ -1646,16 +1865,16 @@ $('btnGuardarMovil').addEventListener('click', () => {
   if (sel.idioma) irDestino(); else irIdioma();
 });
 $('btnCambiarServicio').addEventListener('click', () => {
-  const p = trabajoPendiente(), nombre = esDrive ? 'Google Drive' : 'Dropbox';
+  const p = trabajoPendiente(), nombre = NOMBRE_SERVICIO;
   const aviso = p ? `\n\nHay ${p} cosa(s) sin enviar a ${nombre}: se quedan guardadas en este móvil y se enviarán cuando vuelvas a ${nombre}.` : '';
-  if (!confirm('¿Cambiar de servicio (Dropbox / Google Drive) en este móvil?' + aviso)) return;
+  if (!confirm('¿Cambiar de servicio (buzón de la tienda / Dropbox / Google Drive) en este móvil?' + aviso)) return;
   ls.setItem(KSERVICIO, 'elegir');
   location.reload();
 });
 $('btnDesconectar').addEventListener('click', () => {
   const p = lecturas.pendientes() + fotos.pendientes();
-  if (!confirm(`¿Desconectar este móvil de ${esDrive ? 'Google Drive' : 'Dropbox'}?` + (p ? `\nHay ${p} cosas sin enviar: se quedan guardadas aquí y se enviarán al volver a conectar.` : ''))) return;
-  (esDrive ? authG : auth).desconectar();
+  if (!confirm(`¿Desconectar este móvil de ${NOMBRE_SERVICIO}?` + (p ? `\nHay ${p} cosas sin enviar: se quedan guardadas aquí y se enviarán al volver a conectar.` : ''))) return;
+  if (esBuzon) ls.removeItem(KBUZON); else (esDrive ? authG : auth).desconectar();
   ls.setItem(KSERVICIO, 'elegir');
   location.reload();
 });
@@ -1806,6 +2025,7 @@ $('btnAnular').addEventListener('click', () => {
 function estadoLectura(l) {
   if (l.estado === 'enviada') return ['enviada', 'enviada'];
   if (l.estado === 'anulada') return ['anulada', 'anulada'];
+  if (l.estado === 'rechazada') return ['error', 'rechazada'];
   if (l.estado === 'borrar' || l.estado === 'borrando' || l.anular) return ['pendiente', 'anulando…'];
   if (l.estado === 'enviando') return ['pendiente', 'enviando…'];
   return ['pendiente', 'pendiente'];
@@ -1850,10 +2070,14 @@ let pendientesOtro = 0; // del servicio que no está en uso en este móvil
 async function contarPendientesOtro() {
   let n = 0;
   try {
-    const otra = JSON.parse(ls.getItem(esDrive ? 'invscan.cola' : 'invscan.cola.drive') || 'null');
-    if (otra) n += (otra.lista || []).filter(l => ['pendiente', 'enviando', 'borrar', 'borrando'].includes(l.estado)).length;
-    const otroServicio = esDrive ? 'dropbox' : 'drive';
-    n += ((await almacenFotos.todas()) || []).filter(f => (f.servicio || 'dropbox') === otroServicio && f.estado !== 'enviada').length;
+    const propia = esDrive ? 'invscan.cola.drive' : esBuzon ? 'invscan.cola.buzon' : 'invscan.cola';
+    for (const k of ['invscan.cola', 'invscan.cola.drive', 'invscan.cola.buzon']) {
+      if (k === propia) continue;
+      const otra = JSON.parse(ls.getItem(k) || 'null');
+      if (otra) n += (otra.lista || []).filter(l => ['pendiente', 'enviando', 'borrar', 'borrando'].includes(l.estado)).length;
+    }
+    const mio = SERVICIO || 'dropbox';
+    n += ((await almacenFotos.todas()) || []).filter(f => (f.servicio || 'dropbox') !== mio && f.estado !== 'enviada').length;
   } catch (e) { /* nada */ }
   pendientesOtro = n;
   pintarEstadoCola();
@@ -1864,8 +2088,8 @@ function pintarEstadoCola() {
   c.classList.toggle('pend', nl + nf + nr > 0);
   c.textContent = (nl + nf + nr
     ? `Pendiente de enviar: ${nl} lectura(s) · ${nf} foto(s)` + (nr ? ` · ${nr} resumen(es)` : '')
-    : `Todo enviado a ${esDrive ? 'Google Drive' : 'Dropbox'} ✓`)
-    + (pendientesOtro ? ` · En ${esDrive ? 'Dropbox' : 'Google Drive'} quedan ${pendientesOtro} sin enviar: se enviarán al volver a ese servicio.` : '');
+    : `Todo enviado a ${NOMBRE_SERVICIO} ✓`)
+    + (pendientesOtro ? ` · En otro servicio de este móvil quedan ${pendientesOtro} sin enviar: se enviarán al volver a él.` : '');
 }
 
 /* ---------- modo C: fotos ---------- */
@@ -1911,7 +2135,9 @@ function sincronizarPronto(ms = 1200) { clearTimeout(timerSync); timerSync = set
 function tratarError(e) {
   if (!e) return;
   if (e.tipo === 'red') ponerSinRed(true);
-  if (e.tipo === 'auth' && esDrive) {
+  if (e.tipo === 'auth' && esBuzon) {
+    mostrarError('errorCola', N.mensajeError(e));
+  } else if (e.tipo === 'auth' && esDrive) {
     pintarAvisoGoogle();
     mostrarError('errorCola', N.mensajeError(e));
     $('errorCola').appendChild(boton('Reconectar Google', 'primario', reconectarGoogle));
@@ -1950,7 +2176,9 @@ async function sincronizarTodo() {
 }
 async function sondear() {
   try {
-    if (esDrive) await drive.metadatos(N.CONFIG.idiomas[0].drive.estanterias); else await dbx.cuenta();
+    if (esBuzon) await buzon.pedir('ping', {});
+    else if (esDrive) await drive.metadatos(N.CONFIG.idiomas[0].drive.estanterias);
+    else await dbx.cuenta();
     ponerSinRed(false);
   } catch (e) { if (e.tipo === 'red') ponerSinRed(true); }
 }
@@ -1995,6 +2223,8 @@ async function arrancar() {
   if (esDrive) {
     prepararGoogle();
     pintarAvisoGoogle();
+  } else if (esBuzon) {
+    // nada que preparar: sin cuenta
   } else {
     listo = dbx.prepararRaiz()
       .then(r => { if (r) ls.setItem(KRAIZ, r); else ls.removeItem(KRAIZ); })
@@ -2003,7 +2233,7 @@ async function arrancar() {
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* nada */ }
   try { await fotos.cargar(); } catch (e) { toast('No se pudieron leer las fotos guardadas en el móvil', 'mal', 3000); }
   contarPendientesOtro();
-  if (esDrive && !movilActual()) { irMovil(); return; }
+  if ((esDrive || esBuzon) && !movilActual()) { irMovil(); return; }
   if (sel.idioma && sel.destino && sel.csv) irTrabajo();
   else if (sel.idioma && sel.destino) irArchivo();
   else if (sel.idioma) irDestino();
